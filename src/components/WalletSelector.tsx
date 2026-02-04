@@ -1,11 +1,11 @@
 /**
  * WalletSelector Component
- * Handles wallet connection with Freighter and Albedo support
+ * Enhanced with better animations
  */
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Wallet, X, ExternalLink, AlertCircle } from "lucide-react";
+import { Wallet, X, ExternalLink, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   kit,
@@ -13,8 +13,6 @@ import {
   getWalletAddress,
   setWallet,
   shortenAddress,
-  FREIGHTER_ID,
-  ALBEDO_ID,
 } from "@/stellar/wallets";
 
 interface WalletSelectorProps {
@@ -23,6 +21,27 @@ interface WalletSelectorProps {
   connectedAddress: string | null;
   walletType: string | null;
 }
+
+const backdropVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+};
+
+const modalVariants = {
+  hidden: { opacity: 0, scale: 0.9, y: 20 },
+  visible: { 
+    opacity: 1, 
+    scale: 1, 
+    y: 0,
+    transition: { duration: 0.3 }
+  },
+  exit: { 
+    opacity: 0, 
+    scale: 0.9, 
+    y: 20,
+    transition: { duration: 0.2 }
+  },
+};
 
 export const WalletSelector = ({
   onConnect,
@@ -71,104 +90,152 @@ export const WalletSelector = ({
 
   if (connectedAddress) {
     return (
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2">
-          <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
-          <span className="text-sm text-muted-foreground">{walletType}</span>
-          <span className="font-mono text-sm text-foreground">
-            {shortenAddress(connectedAddress)}
-          </span>
-        </div>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex items-center gap-3"
+      >
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          className="flex items-center gap-3 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm px-4 py-2.5"
+        >
+          <div className="relative">
+            <div className="h-2.5 w-2.5 rounded-full bg-success" />
+            <motion.div
+              className="absolute inset-0 rounded-full bg-success"
+              animate={{ scale: [1, 1.5, 1], opacity: [1, 0, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs text-muted-foreground">{walletType}</span>
+            <span className="font-mono text-sm font-medium text-foreground">
+              {shortenAddress(connectedAddress)}
+            </span>
+          </div>
+        </motion.div>
         <Button
           variant="outline"
           size="sm"
           onClick={handleDisconnect}
-          className="text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground border-border/50"
         >
           Disconnect
         </Button>
-      </div>
+      </motion.div>
     );
   }
 
   return (
     <>
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="bg-gradient-primary text-primary-foreground hover:opacity-90 transition-opacity"
-      >
-        <Wallet className="mr-2 h-4 w-4" />
-        Connect Wallet
-      </Button>
+      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="bg-gradient-primary text-primary-foreground hover:opacity-90 transition-all shadow-button px-6 py-5 text-base"
+        >
+          <Wallet className="mr-2 h-5 w-5" />
+          Connect Wallet
+        </Button>
+      </motion.div>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+            variants={backdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-4"
             onClick={() => setIsOpen(false)}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              variants={modalVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-card"
+              className="relative w-full max-w-md rounded-2xl border border-border/50 bg-card/95 backdrop-blur-xl p-8 shadow-card"
             >
-              <button
+              <motion.button
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={() => setIsOpen(false)}
-                className="absolute right-4 top-4 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-4 top-4 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
               >
                 <X className="h-5 w-5" />
-              </button>
+              </motion.button>
 
-              <h2 className="mb-2 text-xl font-semibold text-foreground">
-                Connect Wallet
-              </h2>
-              <p className="mb-6 text-sm text-muted-foreground">
-                Select a wallet to connect to Stellar Testnet
-              </p>
-
-              {error && (
+              <div className="text-center mb-8">
                 <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 flex items-center gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", delay: 0.1 }}
+                  className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-primary mb-4"
                 >
-                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                  {error}
+                  <Wallet className="h-8 w-8 text-primary-foreground" />
                 </motion.div>
-              )}
+                <h2 className="text-2xl font-bold text-foreground mb-2">
+                  Connect Wallet
+                </h2>
+                <p className="text-muted-foreground">
+                  Select a wallet to connect to Stellar Testnet
+                </p>
+              </div>
+
+              <AnimatePresence mode="wait">
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: "auto" }}
+                    exit={{ opacity: 0, y: -10, height: 0 }}
+                    className="mb-6 flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive"
+                  >
+                    <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                    {error}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <div className="space-y-3">
-                {SUPPORTED_WALLETS.map((wallet) => (
-                  <button
+                {SUPPORTED_WALLETS.map((wallet, index) => (
+                  <motion.button
                     key={wallet.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 + 0.2 }}
                     onClick={() => handleSelectWallet(wallet.id)}
                     disabled={isConnecting}
-                    className="flex w-full items-center justify-between rounded-lg border border-border bg-secondary/50 p-4 transition-all hover:border-primary hover:bg-secondary disabled:opacity-50"
+                    whileHover={{ scale: 1.02, x: 4 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex w-full items-center justify-between rounded-xl border border-border/50 bg-secondary/30 p-5 transition-all hover:border-primary/50 hover:bg-secondary/50 disabled:opacity-50 disabled:cursor-not-allowed group"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{wallet.icon}</span>
-                      <span className="font-medium text-foreground">
+                    <div className="flex items-center gap-4">
+                      <span className="text-3xl">{wallet.icon}</span>
+                      <span className="font-medium text-foreground text-lg">
                         {wallet.name}
                       </span>
                     </div>
-                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                  </button>
+                    <ExternalLink className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </motion.button>
                 ))}
               </div>
 
               {isConnecting && (
-                <div className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="mt-6 flex items-center justify-center gap-3 text-muted-foreground"
+                >
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent"
+                  />
                   Connecting...
-                </div>
+                </motion.div>
               )}
 
-              <p className="mt-6 text-center text-xs text-muted-foreground">
+              <p className="mt-8 text-center text-sm text-muted-foreground">
                 New to Stellar?{" "}
                 <a
                   href="https://www.freighter.app/"
@@ -176,7 +243,7 @@ export const WalletSelector = ({
                   rel="noopener noreferrer"
                   className="text-primary hover:underline"
                 >
-                  Get Freighter
+                  Get Freighter →
                 </a>
               </p>
             </motion.div>

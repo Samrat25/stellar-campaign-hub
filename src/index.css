@@ -59,11 +59,13 @@
     /* Gradient tokens */
     --gradient-primary: linear-gradient(135deg, hsl(193 100% 43%), hsl(193 100% 35%));
     --gradient-card: linear-gradient(145deg, hsl(222 47% 10%), hsl(222 47% 6%));
-    --gradient-hero: linear-gradient(180deg, hsl(222 47% 8%) 0%, hsl(222 47% 4%) 100%);
+    --gradient-hero: radial-gradient(ellipse at top, hsl(222 47% 12%) 0%, hsl(222 47% 4%) 60%);
+    --gradient-glow: radial-gradient(circle at center, hsl(193 100% 43% / 0.15), transparent 70%);
 
     /* Shadows */
-    --shadow-glow: 0 0 40px hsl(193 100% 43% / 0.15);
+    --shadow-glow: 0 0 60px hsl(193 100% 43% / 0.2);
     --shadow-card: 0 8px 32px hsl(222 47% 4% / 0.5);
+    --shadow-button: 0 4px 24px hsl(193 100% 43% / 0.3);
 
     /* Sidebar */
     --sidebar-background: 222 47% 6%;
@@ -75,8 +77,6 @@
     --sidebar-border: 217 33% 22%;
     --sidebar-ring: 193 100% 43%;
   }
-
-  /* No light mode - space theme only */
 }
 
 @layer base {
@@ -127,6 +127,10 @@
     background-image: var(--gradient-hero);
   }
 
+  .bg-gradient-glow {
+    background-image: var(--gradient-glow);
+  }
+
   .shadow-glow {
     box-shadow: var(--shadow-glow);
   }
@@ -135,16 +139,64 @@
     box-shadow: var(--shadow-card);
   }
 
-  .animate-pulse-slow {
-    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  .shadow-button {
+    box-shadow: var(--shadow-button);
+  }
+
+  /* Stars background */
+  .stars-bg {
+    background-image: 
+      radial-gradient(2px 2px at 20px 30px, hsl(193 100% 60%), transparent),
+      radial-gradient(2px 2px at 40px 70px, hsl(210 40% 70%), transparent),
+      radial-gradient(1px 1px at 90px 40px, hsl(193 100% 80%), transparent),
+      radial-gradient(2px 2px at 160px 120px, hsl(210 40% 60%), transparent),
+      radial-gradient(1px 1px at 230px 80px, hsl(193 100% 70%), transparent),
+      radial-gradient(2px 2px at 300px 150px, hsl(210 40% 80%), transparent),
+      radial-gradient(1px 1px at 370px 60px, hsl(193 100% 60%), transparent),
+      radial-gradient(2px 2px at 450px 130px, hsl(210 40% 70%), transparent);
+    background-size: 500px 200px;
+    animation: twinkle 8s ease-in-out infinite;
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-10px) rotate(1deg); }
+    75% { transform: translateY(5px) rotate(-1deg); }
+  }
+
+  @keyframes pulse-ring {
+    0% { transform: scale(0.8); opacity: 0.8; }
+    50% { transform: scale(1.2); opacity: 0; }
+    100% { transform: scale(0.8); opacity: 0; }
+  }
+
+  @keyframes orbit {
+    0% { transform: rotate(0deg) translateX(80px) rotate(0deg); }
+    100% { transform: rotate(360deg) translateX(80px) rotate(-360deg); }
   }
 
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
 
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+  .animate-float-delayed {
+    animation: float 6s ease-in-out 2s infinite;
+  }
+
+  .animate-pulse-ring {
+    animation: pulse-ring 2s ease-out infinite;
+  }
+
+  .animate-orbit {
+    animation: orbit 20s linear infinite;
+  }
+
+  .animate-orbit-reverse {
+    animation: orbit 25s linear infinite reverse;
   }
 }
