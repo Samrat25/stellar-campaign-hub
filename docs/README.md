@@ -14,28 +14,33 @@ Screenshot of the wallet connection modal showing Freighter, Albedo, and xBull o
 - Save here as `wallet-options.png`
 
 ### 2. contract-address.png ⚠️ REQUIRED
-Screenshot of the deployed contract on Stellar Expert.
+Screenshot showing the deployed contract address (just the contract ID displayed in your app or documentation).
 
 **How to get:**
-- Visit: https://stellar.expert/explorer/testnet/contract/CDN5LREO43VK4KKCZXAEML7P4KYSJ2YYX2QELRALPC76ZELS2QME54EG
-- Screenshot the page
+- Take a screenshot showing the contract ID: `CDN5LREO43VK4KKCZXAEML7P4KYSJ2YYX2QELRALPC76ZELS2QME54EG`
+- Can be from your app, README, or any clear display of the contract address
 - Save here as `contract-address.png`
 
 ### 3. transaction-hash.png ⚠️ REQUIRED
-Screenshot of the contract deployment transaction on Stellar Expert.
+Screenshot of a CONTRACT CALL transaction (like a donation) on Stellar Explorer.
 
 **How to get:**
-- Visit: https://stellar.expert/explorer/testnet/tx/49f1fbe7a2e4311087dea3a585d1815800692d37dba6ae3160a9caab0af968be
-- Screenshot the page
+- Run `npm run dev`
+- Create a campaign or make a donation
+- Copy the transaction hash from the success message
+- Visit: https://stellar.expert/explorer/testnet/tx/YOUR_TRANSACTION_HASH
+- Screenshot the transaction page
 - Save here as `transaction-hash.png`
+
+**Note:** This should be a contract CALL transaction (donate, create_campaign), not the deployment transaction.
 
 ---
 
 ## Current Status
 
-- [ ] wallet-options.png
-- [ ] contract-address.png
-- [ ] transaction-hash.png
+- [x] wallet-options.png ✅
+- [x] contract-address.png ✅
+- [ ] transaction-hash.png ⚠️ (Need contract call transaction screenshot)
 
 ---
 

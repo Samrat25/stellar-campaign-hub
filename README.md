@@ -18,43 +18,30 @@ The app supports three wallet providers for connecting to Stellar Testnet:
 
 ### 2. Deployed Contract Address
 
-Contract deployed and verified on Stellar Testnet:
+Contract deployed on Stellar Testnet:
 
 ![Contract Address](docs/contract-address.png)
 
 **Contract ID:** `CDN5LREO43VK4KKCZXAEML7P4KYSJ2YYX2QELRALPC76ZELS2QME54EG`
 
-[View on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CDN5LREO43VK4KKCZXAEML7P4KYSJ2YYX2QELRALPC76ZELS2QME54EG)
-
 ### 3. Transaction Hash (Contract Call)
 
-Verified transaction on Stellar Explorer:
+Contract call transaction verified on Stellar Explorer:
 
 ![Transaction Hash](docs/transaction-hash.png)
 
-**Transaction Hash:** `49f1fbe7a2e4311087dea3a585d1815800692d37dba6ae3160a9caab0af968be`
+**Transaction Hash:** (Your donation or contract call transaction)
 
-[View on Stellar Explorer](https://stellar.expert/explorer/testnet/tx/49f1fbe7a2e4311087dea3a585d1815800692d37dba6ae3160a9caab0af968be)
+[Verify on Stellar Explorer](https://stellar.expert/explorer/testnet/contract/CDN5LREO43VK4KKCZXAEML7P4FYSJ2YYX2QELRALPC76ZELS2QME54EG)
 
 ---
 
 ## 🚀 Live Demo
 
-**Live App:** [Deploy to Vercel - See DEPLOYMENT.md](DEPLOYMENT.md)
+**Live App:** steller-yellow-belt-edmvvpg1s-samrat25s-projects.vercel.app
 
-**Contract on Stellar Explorer:** [View Contract](https://stellar.expert/explorer/testnet/contract/CDN5LREO43VK4KKCZXAEML7P4KYSJ2YYX2QELRALPC76ZELS2QME54EG)
+**Contract on Stellar Explorer:** [View Contract](https://stellar.expert/explorer/testnet/contract/CDN5LREO43VK4KKCZXAEML7P4FYSJ2YYX2QELRALPC76ZELS2QME54EG)
 
-### Quick Deploy
-
-```bash
-# Build the project
-npm run build
-
-# Deploy to Vercel (install vercel CLI first: npm i -g vercel)
-vercel --prod
-```
-
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
 ---
 
@@ -65,13 +52,10 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 CDN5LREO43VK4KKCZXAEML7P4KYSJ2YYX2QELRALPC76ZELS2QME54EG
 ```
 
-**Deployment Transaction Hash:**
+**Deployment Transaction:**
 ```
 49f1fbe7a2e4311087dea3a585d1815800692d37dba6ae3160a9caab0af968be
 ```
-
-**Verify Transaction:**
-[View on Stellar Expert](https://stellar.expert/explorer/testnet/tx/49f1fbe7a2e4311087dea3a585d1815800692d37dba6ae3160a9caab0af968be)
 
 **Network:** Stellar Testnet
 
@@ -101,7 +85,7 @@ CDN5LREO43VK4KKCZXAEML7P4KYSJ2YYX2QELRALPC76ZELS2QME54EG
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/stellar-campaign-hub.git
+git clone https://github.com/Samrat25/stellar-campaign-hub.git
 cd stellar-campaign-hub
 ```
 
@@ -281,8 +265,8 @@ stellar-campaign-hub/
 - ✅ README with setup instructions
 - ✅ 2+ meaningful commits
 - ✅ Screenshot of wallet options
-- ✅ Deployed contract: `CDN5LREO43VK4KKCZXAEML7P4KYSJ2YYX2QELRALPC76ZELS2QME54EG`
-- ✅ Transaction hash: `49f1fbe7a2e4311087dea3a585d1815800692d37dba6ae3160a9caab0af968be`
+- ✅ Deployed contract address screenshot
+- ✅ Transaction hash of contract call (verifiable on Stellar Explorer)
 - ⏳ Live demo (deploying)
 
 ---
