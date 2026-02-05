@@ -101,6 +101,9 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
   };
 
   const isSubmitting = txStatus === "pending";
+  
+  // Check if connected wallet is the creator
+  const isCreator = campaign && walletAddress.toLowerCase() === campaign.creator.toLowerCase();
 
   // Quick amount buttons
   const quickAmounts = [10, 50, 100, 500];
@@ -188,7 +191,27 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
               Make a Donation
             </h3>
 
-            {txStatus !== "idle" ? (
+            {isCreator ? (
+              // Show message if user is the creator
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center"
+              >
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/20">
+                  <AlertCircle className="h-6 w-6 text-destructive" />
+                </div>
+                <h4 className="text-lg font-semibold text-foreground mb-2">
+                  Cannot Donate to Your Own Campaign
+                </h4>
+                <p className="text-sm text-muted-foreground mb-4">
+                  You are the creator of this campaign. Role separation rules prevent you from donating to your own campaign.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Switch to a different wallet to make a donation.
+                </p>
+              </motion.div>
+            ) : txStatus !== "idle" ? (
               <TransactionStatus
                 status={txStatus}
                 hash={txResult?.hash}

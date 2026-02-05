@@ -1,19 +1,18 @@
 /**
  * Soroban Client Integration
  * Handles all smart contract interactions
- * OPTIMIZED: Lazy-loaded to improve initial page load
  */
 
 import { 
   Contract, 
-  SorobanRpc, 
   TransactionBuilder, 
   Networks, 
   BASE_FEE, 
   Address, 
   nativeToScVal, 
   scValToNative, 
-  Account 
+  Account,
+  rpc
 } from "@stellar/stellar-sdk";
 import { signTransaction } from "./wallets";
 
@@ -25,10 +24,10 @@ const TESTNET_NETWORK_PASSPHRASE = Networks.TESTNET;
 export const CONTRACT_ID = "CAPP4DRFLGD6SJNAWOFJIRCUKYGGVJZXEIIQRRNABD5VEPK6TUB6VTAG";
 
 // Lazy initialize Soroban RPC server only when needed
-let _server: SorobanRpc.Server | null = null;
+let _server: rpc.Server | null = null;
 const getServer = () => {
   if (!_server) {
-    _server = new SorobanRpc.Server(TESTNET_RPC_URL);
+    _server = new rpc.Server(TESTNET_RPC_URL);
   }
   return _server;
 };
@@ -59,12 +58,7 @@ export const createCampaign = async (
   creatorAddress: string
 ): Promise<TransactionResult> => {
   try {
-    // Check if contract ID is set
-    if (CONTRACT_ID === "YOUR_CONTRACT_ID_HERE") {
-      throw new Error("Please set CONTRACT_ID in sorobanClient.ts");
-    }
-
-    // Get account from network
+// Get account from network
     const account = await getServer().getAccount(creatorAddress);
     
     // Create contract instance
@@ -107,12 +101,12 @@ export const createCampaign = async (
       let result = await getServer().getTransaction(sendResponse.hash);
       
       // Wait for transaction to be processed
-      while (result.status === SorobanRpc.Api.GetTransactionStatus.NOT_FOUND) {
+      while (result.status === rpc.Api.GetTransactionStatus.NOT_FOUND) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         result = await getServer().getTransaction(sendResponse.hash);
       }
 
-      if (result.status === SorobanRpc.Api.GetTransactionStatus.SUCCESS) {
+      if (result.status === rpc.Api.GetTransactionStatus.SUCCESS) {
         return { 
           status: "success", 
           hash: sendResponse.hash 
@@ -134,8 +128,12 @@ export const createCampaign = async (
     
     // Parse error messages
     let errorMessage = "Failed to create campaign";
-    if (error.message?.includes("Campaign already exists")) {
-      errorMessage = "Campaign already exists. Only one campaign per contract.";
+    
+    // Check for campaign already exists error
+    if (error.message?.includes("Campaign already exists") || 
+        error.message?.includes("UnreachableCodeReached") ||
+        error.message?.includes("InvalidAction")) {
+      errorMessage = "A campaign already exists on this contract. You can donate to the existing campaign instead! Switch to 'Donate to Campaign' to see it.";
     } else if (error.message?.includes("not found")) {
       errorMessage = "Account not found. Please fund your wallet with testnet XLM.";
     } else if (error.message) {
@@ -157,12 +155,7 @@ export const donateToCampaign = async (
   donorAddress: string
 ): Promise<TransactionResult> => {
   try {
-    // Check if contract ID is set
-    if (CONTRACT_ID === "YOUR_CONTRACT_ID_HERE") {
-      throw new Error("Please set CONTRACT_ID in sorobanClient.ts");
-    }
-
-    // Get account from network
+// Get account from network
     const account = await getServer().getAccount(donorAddress);
     
     // Create contract instance
@@ -203,12 +196,12 @@ export const donateToCampaign = async (
       // Poll for transaction result
       let result = await getServer().getTransaction(sendResponse.hash);
       
-      while (result.status === SorobanRpc.Api.GetTransactionStatus.NOT_FOUND) {
+      while (result.status === rpc.Api.GetTransactionStatus.NOT_FOUND) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         result = await getServer().getTransaction(sendResponse.hash);
       }
 
-      if (result.status === SorobanRpc.Api.GetTransactionStatus.SUCCESS) {
+      if (result.status === rpc.Api.GetTransactionStatus.SUCCESS) {
         return { 
           status: "success", 
           hash: sendResponse.hash 
@@ -252,15 +245,10 @@ export const donateToCampaign = async (
  */
 export const getCampaign = async (): Promise<Campaign | null> => {
   try {
-    // Check if contract ID is set
-    if (CONTRACT_ID === "YOUR_CONTRACT_ID_HERE") {
-      return null;
-    }
-
     // Create contract instance
     const contract = new Contract(CONTRACT_ID);
     
-    // Create a dummy account for simulation
+    // Create a dummy account for simulation (read-only, no auth needed)
     const dummyAccount = new Account(
       "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
       "0"
@@ -276,35 +264,44 @@ export const getCampaign = async (): Promise<Campaign | null> => {
       .build();
 
     // Simulate transaction to get result
-    const simResult = await getServer().simulateTransaction(transaction);
+    const simResult: any = await getServer().simulateTransaction(transaction);
     
-    if (
-      simResult.result &&
-      SorobanRpc.Api.isSimulationSuccess(simResult)
-    ) {
-      // Parse the result
-      const resultValue = simResult.result.retval;
-      
-      // Check if campaign exists (Some variant)
-      if (resultValue && resultValue.switch().name === "some") {
-        const campaignData = resultValue.value();
-        
-        // Extract campaign fields
-        const creator = Address.fromScVal(campaignData.get("creator")!).toString();
-        const title = scValToNative(campaignData.get("title")!);
-        const targetAmount = scValToNative(campaignData.get("target_amount")!);
-        const totalDonated = scValToNative(campaignData.get("total_donated")!);
-        
-        return {
-          creator,
-          title,
-          targetAmount: BigInt(targetAmount),
-          totalDonated: BigInt(totalDonated),
-        };
-      }
+    console.log("Simulation result:", simResult);
+    
+    // Check if simulation was successful
+    if (!rpc.Api.isSimulationSuccess(simResult)) {
+      console.error("Simulation failed:", simResult);
+      return null;
     }
     
-    return null;
+    // Get the return value
+    const resultValue: any = simResult.result?.retval;
+    
+    if (!resultValue) {
+      console.log("No result value");
+      return null;
+    }
+    
+    console.log("Result value:", resultValue);
+    
+    // The contract returns Option<Campaign>
+    // Check if it's Some variant (has a value)
+    const nativeResult = scValToNative(resultValue);
+    console.log("Native result:", nativeResult);
+    
+    if (!nativeResult) {
+      console.log("Campaign not found (None variant)");
+      return null;
+    }
+    
+    // Extract campaign data
+    return {
+      creator: nativeResult.creator,
+      title: nativeResult.title,
+      targetAmount: BigInt(nativeResult.target_amount),
+      totalDonated: BigInt(nativeResult.total_donated),
+    };
+    
   } catch (error) {
     console.error("Get campaign error:", error);
     return null;
@@ -369,4 +366,7 @@ export const isTargetReached = (campaign: Campaign | null): boolean => {
   if (!campaign) return false;
   return campaign.totalDonated >= campaign.targetAmount;
 };
+
+
+
 
