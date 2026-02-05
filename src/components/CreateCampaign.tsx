@@ -3,9 +3,9 @@
  * Form for creating a new crowdfunding campaign
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Rocket, Info } from "lucide-react";
+import { ArrowLeft, Rocket, Info, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,7 @@ import {
   createCampaign,
   TransactionResult,
   TransactionStatus as TxStatus,
+  getWalletBalance,
 } from "@/stellar/sorobanClient";
 
 interface CreateCampaignProps {
@@ -31,6 +32,24 @@ export const CreateCampaign = ({
   const [targetAmount, setTargetAmount] = useState("");
   const [txStatus, setTxStatus] = useState<TxStatus>("idle");
   const [txResult, setTxResult] = useState<TransactionResult | null>(null);
+  const [balance, setBalance] = useState<string>("0");
+  const [loadingBalance, setLoadingBalance] = useState(true);
+
+  // Fetch wallet balance
+  useEffect(() => {
+    const fetchBalance = async () => {
+      setLoadingBalance(true);
+      const bal = await getWalletBalance(walletAddress);
+      setBalance(bal);
+      setLoadingBalance(false);
+    };
+
+    fetchBalance();
+    
+    // Refresh balance every 10 seconds
+    const interval = setInterval(fetchBalance, 10000);
+    return () => clearInterval(interval);
+  }, [walletAddress]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +68,9 @@ export const CreateCampaign = ({
     setTxStatus(result.status);
 
     if (result.status === "success") {
+      // Refresh balance after successful transaction
+      const newBalance = await getWalletBalance(walletAddress);
+      setBalance(newBalance);
       onCampaignCreated();
     }
   };
@@ -75,6 +97,29 @@ export const CreateCampaign = ({
         <ArrowLeft className="h-4 w-4" />
         Back to role selection
       </button>
+
+      {/* Balance Display */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-4 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-4"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Wallet className="h-4 w-4" />
+            <span>Your Balance</span>
+          </div>
+          <div className="text-right">
+            {loadingBalance ? (
+              <div className="h-6 w-24 animate-pulse rounded bg-secondary" />
+            ) : (
+              <div className="text-lg font-semibold text-foreground">
+                {parseFloat(balance).toFixed(2)} XLM
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.div>
 
       <div className="rounded-xl border border-border bg-card p-6">
         <div className="mb-6">

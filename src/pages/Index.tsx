@@ -38,7 +38,7 @@ const features = [
   {
     icon: Shield,
     title: "Multi-Wallet Support",
-    description: "Connect seamlessly with Freighter or Albedo wallets",
+    description: "Connect with Freighter, Albedo, or xBull wallets",
   },
   {
     icon: Zap,

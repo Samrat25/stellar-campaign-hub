@@ -121,6 +121,7 @@ impl CrowdfundingContract {
     /// # Panics
     /// * If no campaign exists
     /// * If amount is not positive
+    /// * If donor is the campaign creator (STRICT ROLE SEPARATION)
     /// 
     /// # Events
     /// Emits `DonationReceived` event with donation details
@@ -146,6 +147,11 @@ impl CrowdfundingContract {
         let mut campaign: Campaign = env.storage().instance()
             .get(&DataKey::Campaign)
             .expect("Campaign not found");
+
+        // STRICT ROLE SEPARATION: Creator cannot donate to their own campaign
+        if donor == campaign.creator {
+            panic!("Creator cannot donate to their own campaign");
+        }
 
         // Update total donated
         campaign.total_donated = campaign.total_donated
@@ -300,5 +306,24 @@ mod test {
         env.mock_all_auths();
         client.create_campaign(&creator, &title, &target);
         client.create_campaign(&creator, &title, &target); // Should panic
+    }
+
+    #[test]
+    #[should_panic(expected = "Creator cannot donate to their own campaign")]
+    fn test_creator_cannot_donate_to_own_campaign() {
+        let env = Env::default();
+        let contract_id = env.register_contract(None, CrowdfundingContract);
+        let client = CrowdfundingContractClient::new(&env, &contract_id);
+
+        let creator = Address::generate(&env);
+        let title = String::from_str(&env, "Test Campaign");
+        let target = 1_000_000_000i128;
+        let donation = 100_000_000i128;
+
+        env.mock_all_auths();
+        client.create_campaign(&creator, &title, &target);
+        
+        // Creator tries to donate to their own campaign - should panic
+        client.donate(&creator, &donation);
     }
 }

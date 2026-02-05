@@ -20,12 +20,6 @@
   </head>
 
   <body>
-    <!-- Polyfill for Node.js globals used by stellar-wallets-kit -->
-    <script>
-      window.global = window;
-      window.Buffer = window.Buffer || [];
-      window.process = window.process || { env: {} };
-    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

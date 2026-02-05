@@ -1,6 +1,7 @@
 /**
  * Stellar Wallets Kit Integration
- * Handles multi-wallet support for Freighter and Albedo
+ * Handles multi-wallet support for Freighter, Albedo, and xBull
+ * LAZY LOADED to improve initial page load
  */
 
 import {
@@ -8,17 +9,36 @@ import {
   WalletNetwork,
   FREIGHTER_ID,
   ALBEDO_ID,
+  XBULL_ID,
   FreighterModule,
   AlbedoModule,
+  xBullModule,
   ISupportedWallet,
 } from "@creit.tech/stellar-wallets-kit";
 
-// Initialize the wallet kit with Testnet configuration
-export const kit = new StellarWalletsKit({
-  network: WalletNetwork.TESTNET,
-  selectedWalletId: FREIGHTER_ID,
-  modules: [new FreighterModule(), new AlbedoModule()],
-});
+// Lazy initialize the wallet kit only when needed
+let _kit: StellarWalletsKit | null = null;
+
+const getKit = () => {
+  if (!_kit) {
+    _kit = new StellarWalletsKit({
+      network: WalletNetwork.TESTNET,
+      selectedWalletId: FREIGHTER_ID,
+      modules: [
+        new FreighterModule(),
+        new AlbedoModule(),
+        new xBullModule(),
+      ],
+    });
+  }
+  return _kit;
+};
+
+export const kit = {
+  get instance() {
+    return getKit();
+  }
+};
 
 // Wallet metadata for UI display
 export const SUPPORTED_WALLETS: { id: string; name: string; icon: string }[] = [
@@ -32,12 +52,17 @@ export const SUPPORTED_WALLETS: { id: string; name: string; icon: string }[] = [
     name: "Albedo",
     icon: "🌟",
   },
+  {
+    id: XBULL_ID,
+    name: "xBull",
+    icon: "🐂",
+  },
 ];
 
 // Get current wallet address
 export const getWalletAddress = async (): Promise<string | null> => {
   try {
-    const { address } = await kit.getAddress();
+    const { address } = await kit.instance.getAddress();
     return address;
   } catch (error) {
     console.error("Failed to get wallet address:", error);
@@ -50,7 +75,7 @@ export const signTransaction = async (
   unsignedTransaction: string,
   address: string
 ): Promise<string> => {
-  const { signedTxXdr } = await kit.signTransaction(unsignedTransaction, {
+  const { signedTxXdr } = await kit.instance.signTransaction(unsignedTransaction, {
     address,
     networkPassphrase: WalletNetwork.TESTNET,
   });
@@ -59,14 +84,14 @@ export const signTransaction = async (
 
 // Set the active wallet
 export const setWallet = (walletId: string) => {
-  kit.setWallet(walletId);
+  kit.instance.setWallet(walletId);
 };
 
 // Open the built-in wallet selector modal
 export const openWalletModal = async (
   onSelect: (wallet: ISupportedWallet) => void
 ) => {
-  await kit.openModal({
+  await kit.instance.openModal({
     onWalletSelected: onSelect,
   });
 };
@@ -80,4 +105,27 @@ export const shortenAddress = (address: string): string => {
 // Get network passphrase
 export const getNetworkPassphrase = () => WalletNetwork.TESTNET;
 
-export { FREIGHTER_ID, ALBEDO_ID, WalletNetwork };
+// Get wallet balance from Horizon
+export const getWalletBalance = async (address: string): Promise<string> => {
+  try {
+    const response = await fetch(
+      `https://horizon-testnet.stellar.org/accounts/${address}`
+    );
+    
+    if (!response.ok) {
+      throw new Error("Failed to fetch balance");
+    }
+    
+    const data = await response.json();
+    const nativeBalance = data.balances.find(
+      (b: any) => b.asset_type === "native"
+    );
+    
+    return nativeBalance ? nativeBalance.balance : "0";
+  } catch (error) {
+    console.error("Failed to fetch balance:", error);
+    return "0";
+  }
+};
+
+export { FREIGHTER_ID, ALBEDO_ID, XBULL_ID, WalletNetwork };
