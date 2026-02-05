@@ -21,7 +21,7 @@ const TESTNET_RPC_URL = "https://soroban-testnet.stellar.org";
 const TESTNET_NETWORK_PASSPHRASE = Networks.TESTNET;
 
 // Contract ID - Replace with your deployed contract address
-export const CONTRACT_ID = "CAPP4DRFLGD6SJNAWOFJIRCUKYGGVJZXEIIQRRNABD5VEPK6TUB6VTAG";
+export const CONTRACT_ID = "CDN5LREO43VK4KKCZXAEML7P4FYSJ2YYX2QELRALPC76ZELS2QME54EG";
 
 // Lazy initialize Soroban RPC server only when needed
 let _server: rpc.Server | null = null;
@@ -39,10 +39,12 @@ export interface TransactionResult {
   status: TransactionStatus;
   hash?: string;
   error?: string;
+  campaignId?: number; // NEW: Return campaign ID after creation
 }
 
 // Campaign data structure
 export interface Campaign {
+  id: number;           // NEW: Campaign ID
   creator: string;
   title: string;
   targetAmount: bigint;
@@ -107,9 +109,20 @@ export const createCampaign = async (
       }
 
       if (result.status === rpc.Api.GetTransactionStatus.SUCCESS) {
+        // Extract campaign ID from result
+        let campaignId = 1; // Default
+        try {
+          if (result.returnValue) {
+            campaignId = Number(scValToNative(result.returnValue));
+          }
+        } catch (e) {
+          console.log("Could not extract campaign ID:", e);
+        }
+        
         return { 
           status: "success", 
-          hash: sendResponse.hash 
+          hash: sendResponse.hash,
+          campaignId
         };
       } else {
         return { 
@@ -129,12 +142,7 @@ export const createCampaign = async (
     // Parse error messages
     let errorMessage = "Failed to create campaign";
     
-    // Check for campaign already exists error
-    if (error.message?.includes("Campaign already exists") || 
-        error.message?.includes("UnreachableCodeReached") ||
-        error.message?.includes("InvalidAction")) {
-      errorMessage = "A campaign already exists on this contract. You can donate to the existing campaign instead! Switch to 'Donate to Campaign' to see it.";
-    } else if (error.message?.includes("not found")) {
+    if (error.message?.includes("not found")) {
       errorMessage = "Account not found. Please fund your wallet with testnet XLM.";
     } else if (error.message) {
       errorMessage = error.message;
@@ -151,6 +159,7 @@ export const createCampaign = async (
  * Donate to an existing campaign
  */
 export const donateToCampaign = async (
+  campaignId: number,
   amount: number,
   donorAddress: string
 ): Promise<TransactionResult> => {
@@ -172,6 +181,7 @@ export const donateToCampaign = async (
       .addOperation(
         contract.call(
           "donate",
+          nativeToScVal(campaignId, { type: "u64" }),
           Address.fromString(donorAddress).toScVal(),
           nativeToScVal(amountInStroops, { type: "i128" })
         )
@@ -225,8 +235,8 @@ export const donateToCampaign = async (
     let errorMessage = "Failed to process donation";
     if (error.message?.includes("Creator cannot donate")) {
       errorMessage = "Creator cannot donate to their own campaign. Please use a different wallet.";
-    } else if (error.message?.includes("No campaign exists")) {
-      errorMessage = "No campaign exists. Please create a campaign first.";
+    } else if (error.message?.includes("Campaign not found")) {
+      errorMessage = "Campaign not found. It may have been removed.";
     } else if (error.message?.includes("not found")) {
       errorMessage = "Account not found. Please fund your wallet with testnet XLM.";
     } else if (error.message) {
@@ -241,9 +251,9 @@ export const donateToCampaign = async (
 };
 
 /**
- * Get current campaign data
+ * Get specific campaign by ID
  */
-export const getCampaign = async (): Promise<Campaign | null> => {
+export const getCampaign = async (campaignId: number): Promise<Campaign | null> => {
   try {
     // Create contract instance
     const contract = new Contract(CONTRACT_ID);
@@ -259,14 +269,12 @@ export const getCampaign = async (): Promise<Campaign | null> => {
       fee: BASE_FEE,
       networkPassphrase: TESTNET_NETWORK_PASSPHRASE,
     })
-      .addOperation(contract.call("get_campaign"))
+      .addOperation(contract.call("get_campaign", nativeToScVal(campaignId, { type: "u64" })))
       .setTimeout(30)
       .build();
 
     // Simulate transaction to get result
     const simResult: any = await getServer().simulateTransaction(transaction);
-    
-    console.log("Simulation result:", simResult);
     
     // Check if simulation was successful
     if (!rpc.Api.isSimulationSuccess(simResult)) {
@@ -278,24 +286,19 @@ export const getCampaign = async (): Promise<Campaign | null> => {
     const resultValue: any = simResult.result?.retval;
     
     if (!resultValue) {
-      console.log("No result value");
       return null;
     }
     
-    console.log("Result value:", resultValue);
-    
     // The contract returns Option<Campaign>
-    // Check if it's Some variant (has a value)
     const nativeResult = scValToNative(resultValue);
-    console.log("Native result:", nativeResult);
     
     if (!nativeResult) {
-      console.log("Campaign not found (None variant)");
       return null;
     }
     
     // Extract campaign data
     return {
+      id: Number(nativeResult.id),
       creator: nativeResult.creator,
       title: nativeResult.title,
       targetAmount: BigInt(nativeResult.target_amount),
@@ -305,6 +308,106 @@ export const getCampaign = async (): Promise<Campaign | null> => {
   } catch (error) {
     console.error("Get campaign error:", error);
     return null;
+  }
+};
+
+/**
+ * Get all campaigns
+ */
+export const getAllCampaigns = async (): Promise<Campaign[]> => {
+  try {
+    const contract = new Contract(CONTRACT_ID);
+    const dummyAccount = new Account(
+      "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
+      "0"
+    );
+    
+    const transaction = new TransactionBuilder(dummyAccount, {
+      fee: BASE_FEE,
+      networkPassphrase: TESTNET_NETWORK_PASSPHRASE,
+    })
+      .addOperation(contract.call("get_all_campaigns"))
+      .setTimeout(30)
+      .build();
+
+    const simResult: any = await getServer().simulateTransaction(transaction);
+    
+    if (!rpc.Api.isSimulationSuccess(simResult)) {
+      return [];
+    }
+    
+    const resultValue: any = simResult.result?.retval;
+    if (!resultValue) {
+      return [];
+    }
+    
+    const nativeResult = scValToNative(resultValue);
+    
+    if (!Array.isArray(nativeResult)) {
+      return [];
+    }
+    
+    return nativeResult.map((camp: any) => ({
+      id: Number(camp.id),
+      creator: camp.creator,
+      title: camp.title,
+      targetAmount: BigInt(camp.target_amount),
+      totalDonated: BigInt(camp.total_donated),
+    }));
+    
+  } catch (error) {
+    console.error("Get all campaigns error:", error);
+    return [];
+  }
+};
+
+/**
+ * Get campaigns by creator address
+ */
+export const getCampaignsByCreator = async (creatorAddress: string): Promise<Campaign[]> => {
+  try {
+    const contract = new Contract(CONTRACT_ID);
+    const dummyAccount = new Account(
+      "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
+      "0"
+    );
+    
+    const transaction = new TransactionBuilder(dummyAccount, {
+      fee: BASE_FEE,
+      networkPassphrase: TESTNET_NETWORK_PASSPHRASE,
+    })
+      .addOperation(contract.call("get_campaigns_by_creator", Address.fromString(creatorAddress).toScVal()))
+      .setTimeout(30)
+      .build();
+
+    const simResult: any = await getServer().simulateTransaction(transaction);
+    
+    if (!rpc.Api.isSimulationSuccess(simResult)) {
+      return [];
+    }
+    
+    const resultValue: any = simResult.result?.retval;
+    if (!resultValue) {
+      return [];
+    }
+    
+    const nativeResult = scValToNative(resultValue);
+    
+    if (!Array.isArray(nativeResult)) {
+      return [];
+    }
+    
+    return nativeResult.map((camp: any) => ({
+      id: Number(camp.id),
+      creator: camp.creator,
+      title: camp.title,
+      targetAmount: BigInt(camp.target_amount),
+      totalDonated: BigInt(camp.total_donated),
+    }));
+    
+  } catch (error) {
+    console.error("Get campaigns by creator error:", error);
+    return [];
   }
 };
 

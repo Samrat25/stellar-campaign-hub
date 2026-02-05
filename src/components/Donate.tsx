@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TransactionStatus } from "./TransactionStatus";
 import { CampaignStatus } from "./CampaignStatus";
+import { CampaignsList } from "./CampaignsList";
+import { DonationHistory } from "./DonationHistory";
 import {
   donateToCampaign,
   getCampaign,
@@ -25,7 +27,11 @@ interface DonateProps {
   onBack: () => void;
 }
 
+type ViewMode = "list" | "donate" | "history";
+
 export const Donate = ({ walletAddress, onBack }: DonateProps) => {
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [amount, setAmount] = useState("");
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,6 +39,7 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
   const [txResult, setTxResult] = useState<TransactionResult | null>(null);
   const [balance, setBalance] = useState<string>("0");
   const [loadingBalance, setLoadingBalance] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Fetch wallet balance
   useEffect(() => {
@@ -50,11 +57,13 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
     return () => clearInterval(interval);
   }, [walletAddress]);
 
-  // Fetch campaign data
+  // Fetch campaign data - get first campaign for now
   useEffect(() => {
     const fetchCampaign = async () => {
       setLoading(true);
-      const data = await getCampaign();
+      // For the donate form, we'll use the first available campaign
+      // In list view, all campaigns are shown
+      const data = await getCampaign(1); // Get campaign with ID 1
       setCampaign(data);
       setLoading(false);
     };
@@ -66,25 +75,40 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
     return () => clearInterval(interval);
   }, []);
 
+  const handleSelectCampaign = (camp: Campaign) => {
+    setSelectedCampaign(camp);
+    setViewMode("history");
+  };
+
+  const handleDonateClick = () => {
+    setViewMode("donate");
+  };
+
+  const handleBackToList = () => {
+    setViewMode("list");
+    setSelectedCampaign(null);
+  };
+
   const handleDonate = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!amount || parseFloat(amount) <= 0) return;
+    if (!amount || parseFloat(amount) <= 0 || !campaign) return;
 
     setTxStatus("pending");
 
-    const result = await donateToCampaign(parseFloat(amount), walletAddress);
+    const result = await donateToCampaign(campaign.id, parseFloat(amount), walletAddress);
 
     setTxResult(result);
     setTxStatus(result.status);
 
     if (result.status === "success") {
       // Refresh campaign data and balance
-      const updatedCampaign = await getCampaign();
+      const updatedCampaign = await getCampaign(campaign.id);
       setCampaign(updatedCampaign);
       const newBalance = await getWalletBalance(walletAddress);
       setBalance(newBalance);
       setAmount("");
+      setRefreshTrigger(prev => prev + 1);
     }
   };
 
@@ -95,9 +119,10 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
 
   const refreshCampaign = async () => {
     setLoading(true);
-    const data = await getCampaign();
+    const data = await getCampaign(campaign?.id || 1);
     setCampaign(data);
     setLoading(false);
+    setRefreshTrigger(prev => prev + 1);
   };
 
   const isSubmitting = txStatus === "pending";
@@ -108,6 +133,72 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
   // Quick amount buttons
   const quickAmounts = [10, 50, 100, 500];
 
+  // Show donation history view
+  if (viewMode === "history" && selectedCampaign) {
+    return <DonationHistory campaign={selectedCampaign} onBack={handleBackToList} />;
+  }
+
+  // Show campaigns list view
+  if (viewMode === "list") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="w-full max-w-4xl mx-auto"
+      >
+        <button
+          onClick={onBack}
+          className="mb-6 flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to role selection
+        </button>
+
+        {/* Balance Display */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 rounded-xl border border-white/10 bg-slate-900/50 backdrop-blur-sm p-4"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-slate-400">
+              <Wallet className="h-4 w-4" />
+              <span>Your Balance</span>
+            </div>
+            <div className="text-right">
+              {loadingBalance ? (
+                <div className="h-6 w-24 animate-pulse rounded bg-slate-800" />
+              ) : (
+                <div className="text-lg font-semibold text-white">
+                  {parseFloat(balance).toFixed(2)} XLM
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-3xl font-bold text-white mb-2">All Campaigns</h2>
+            <p className="text-slate-400">Click on a campaign to view donation history or donate</p>
+          </div>
+          <Button
+            onClick={handleDonateClick}
+            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700"
+          >
+            <Heart className="mr-2 h-4 w-4" />
+            Donate Now
+          </Button>
+        </div>
+
+        {/* Campaigns List */}
+        <CampaignsList onSelectCampaign={handleSelectCampaign} refreshTrigger={refreshTrigger} />
+      </motion.div>
+    );
+  }
+
+  // Show donate form view
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -115,29 +206,29 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
       className="w-full max-w-lg mx-auto"
     >
       <button
-        onClick={onBack}
-        className="mb-6 flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        onClick={handleBackToList}
+        className="mb-6 flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to role selection
+        Back to campaigns list
       </button>
 
       {/* Balance Display */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-4 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-4"
+        className="mb-4 rounded-xl border border-white/10 bg-slate-900/50 backdrop-blur-sm p-4"
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-sm text-slate-400">
             <Wallet className="h-4 w-4" />
             <span>Your Balance</span>
           </div>
           <div className="text-right">
             {loadingBalance ? (
-              <div className="h-6 w-24 animate-pulse rounded bg-secondary" />
+              <div className="h-6 w-24 animate-pulse rounded bg-slate-800" />
             ) : (
-              <div className="text-lg font-semibold text-foreground">
+              <div className="text-lg font-semibold text-white">
                 {parseFloat(balance).toFixed(2)} XLM
               </div>
             )}
@@ -147,8 +238,8 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="mt-4 text-sm text-muted-foreground">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+          <p className="mt-4 text-sm text-slate-400">
             Loading campaign...
           </p>
         </div>
@@ -156,15 +247,15 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="rounded-xl border border-border bg-card p-8 text-center"
+          className="rounded-xl border border-white/10 bg-slate-900/50 p-8 text-center"
         >
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
-            <AlertCircle className="h-6 w-6 text-muted-foreground" />
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-800">
+            <AlertCircle className="h-6 w-6 text-slate-400" />
           </div>
-          <h3 className="text-lg font-semibold text-foreground">
+          <h3 className="text-lg font-semibold text-white">
             No Campaign Found
           </h3>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-slate-400">
             There's no active campaign yet. Be the first to create one!
           </p>
           <Button onClick={onBack} variant="outline" className="mt-6">
@@ -178,7 +269,7 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
             <CampaignStatus campaign={campaign} />
             <button
               onClick={refreshCampaign}
-              className="absolute right-4 top-4 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+              className="absolute right-4 top-4 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
               title="Refresh campaign data"
             >
               <RefreshCw className="h-4 w-4" />
@@ -186,8 +277,8 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
           </div>
 
           {/* Donation Form */}
-          <div className="rounded-xl border border-border bg-card p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">
+          <div className="rounded-xl border border-white/10 bg-slate-900/50 p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">
               Make a Donation
             </h3>
 
@@ -196,18 +287,18 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center"
+                className="rounded-xl border border-red-500/30 bg-red-500/10 p-6 text-center"
               >
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/20">
-                  <AlertCircle className="h-6 w-6 text-destructive" />
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/20">
+                  <AlertCircle className="h-6 w-6 text-red-400" />
                 </div>
-                <h4 className="text-lg font-semibold text-foreground mb-2">
+                <h4 className="text-lg font-semibold text-white mb-2">
                   Cannot Donate to Your Own Campaign
                 </h4>
-                <p className="text-sm text-muted-foreground mb-4">
+                <p className="text-sm text-slate-400 mb-4">
                   You are the creator of this campaign. Role separation rules prevent you from donating to your own campaign.
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-slate-500">
                   Switch to a different wallet to make a donation.
                 </p>
               </motion.div>
@@ -244,8 +335,8 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
                       onClick={() => setAmount(qa.toString())}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                         amount === qa.toString()
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary text-foreground hover:bg-secondary/80"
+                          ? "bg-blue-500 text-white"
+                          : "bg-slate-800 text-white hover:bg-slate-700"
                       }`}
                     >
                       {qa} XLM
@@ -255,7 +346,7 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-primary text-primary-foreground hover:opacity-90"
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700"
                   disabled={!amount || parseFloat(amount) <= 0 || isSubmitting}
                 >
                   <Heart className="mr-2 h-4 w-4" />

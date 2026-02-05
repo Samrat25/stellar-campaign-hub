@@ -1,8 +1,8 @@
 //! Stellar Crowdfunding Soroban Smart Contract
 //! 
 //! This contract allows:
-//! - Creating a crowdfunding campaign with a title and target amount
-//! - Donating XLM to an existing campaign
+//! - Creating multiple crowdfunding campaigns with unique IDs
+//! - Donating XLM to existing campaigns
 //! - Reading campaign data
 //! 
 //! Events are emitted for:
@@ -11,7 +11,7 @@
 //!
 //! Deploy to Stellar Testnet using:
 //! ```bash
-//! soroban contract deploy \
+//! stellar contract deploy \
 //!   --wasm target/wasm32-unknown-unknown/release/crowdfunding.wasm \
 //!   --source <YOUR_SECRET_KEY> \
 //!   --network testnet
@@ -20,13 +20,15 @@
 #![no_std]
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short,
-    Address, Env, String, log,
+    Address, Env, String, Vec, log,
 };
 
 /// Campaign data structure stored on-chain
 #[contracttype]
 #[derive(Clone)]
 pub struct Campaign {
+    /// Unique campaign ID
+    pub id: u64,
     /// The wallet address of the campaign creator
     pub creator: Address,
     /// The title/name of the campaign
@@ -40,8 +42,9 @@ pub struct Campaign {
 /// Storage keys for the contract
 #[contracttype]
 pub enum DataKey {
-    Campaign,
-    Initialized,
+    Campaign(u64),      // Campaign by ID
+    CampaignCounter,    // Counter for generating unique IDs
+    CampaignList,       // List of all campaign IDs
 }
 
 #[contract]
@@ -57,8 +60,10 @@ impl CrowdfundingContract {
     /// * `title` - The campaign title (max 100 characters recommended)
     /// * `target_amount` - The fundraising goal in stroops
     /// 
+    /// # Returns
+    /// * `u64` - The unique campaign ID
+    /// 
     /// # Panics
-    /// * If a campaign already exists
     /// * If target_amount is not positive
     /// 
     /// # Events
@@ -68,26 +73,26 @@ impl CrowdfundingContract {
         creator: Address,
         title: String,
         target_amount: i128,
-    ) {
+    ) -> u64 {
         // Ensure creator has authorized this transaction
         creator.require_auth();
-
-        // Check if a campaign already exists
-        let initialized: bool = env.storage().instance()
-            .get(&DataKey::Initialized)
-            .unwrap_or(false);
-        
-        if initialized {
-            panic!("Campaign already exists");
-        }
 
         // Validate target amount
         if target_amount <= 0 {
             panic!("Target amount must be positive");
         }
 
+        // Get and increment campaign counter
+        let campaign_id: u64 = env.storage().instance()
+            .get(&DataKey::CampaignCounter)
+            .unwrap_or(0);
+        
+        let next_id = campaign_id + 1;
+        env.storage().instance().set(&DataKey::CampaignCounter, &next_id);
+
         // Create the campaign
         let campaign = Campaign {
+            id: next_id,
             creator: creator.clone(),
             title: title.clone(),
             target_amount,
@@ -95,57 +100,56 @@ impl CrowdfundingContract {
         };
 
         // Store the campaign
-        env.storage().instance().set(&DataKey::Campaign, &campaign);
-        env.storage().instance().set(&DataKey::Initialized, &true);
+        env.storage().instance().set(&DataKey::Campaign(next_id), &campaign);
 
-        // Extend TTL to keep data alive (approximately 1 week)
+        // Add campaign ID to the list
+        let mut campaign_list: Vec<u64> = env.storage().instance()
+            .get(&DataKey::CampaignList)
+            .unwrap_or(Vec::new(&env));
+        campaign_list.push_back(next_id);
+        env.storage().instance().set(&DataKey::CampaignList, &campaign_list);
+
+        // Extend TTL to keep data alive
         env.storage().instance().extend_ttl(100_000, 100_000);
 
         // Emit CampaignCreated event
-        // Event format: (event_name, creator, title, target_amount)
         env.events().publish(
             (symbol_short!("CAMPAIGN"), symbol_short!("created")),
-            (creator, title, target_amount),
+            (next_id, creator, title, target_amount),
         );
 
-        log!(&env, "Campaign created with target: {}", target_amount);
+        log!(&env, "Campaign {} created with target: {}", next_id, target_amount);
+        
+        next_id
     }
 
-    /// Donates to the existing campaign
+    /// Donates to an existing campaign
     /// 
     /// # Arguments
     /// * `env` - The contract environment
+    /// * `campaign_id` - The ID of the campaign to donate to
     /// * `donor` - The wallet address making the donation
     /// * `amount` - The donation amount in stroops
     /// 
     /// # Panics
-    /// * If no campaign exists
+    /// * If campaign doesn't exist
     /// * If amount is not positive
     /// * If donor is the campaign creator (STRICT ROLE SEPARATION)
     /// 
     /// # Events
     /// Emits `DonationReceived` event with donation details
-    pub fn donate(env: Env, donor: Address, amount: i128) {
+    pub fn donate(env: Env, campaign_id: u64, donor: Address, amount: i128) {
         // Ensure donor has authorized this transaction
         donor.require_auth();
-
-        // Check if a campaign exists
-        let initialized: bool = env.storage().instance()
-            .get(&DataKey::Initialized)
-            .unwrap_or(false);
-        
-        if !initialized {
-            panic!("No campaign exists");
-        }
 
         // Validate donation amount
         if amount <= 0 {
             panic!("Donation amount must be positive");
         }
 
-        // Get current campaign
+        // Get campaign
         let mut campaign: Campaign = env.storage().instance()
-            .get(&DataKey::Campaign)
+            .get(&DataKey::Campaign(campaign_id))
             .expect("Campaign not found");
 
         // STRICT ROLE SEPARATION: Creator cannot donate to their own campaign
@@ -159,63 +163,124 @@ impl CrowdfundingContract {
             .expect("Donation overflow");
 
         // Store updated campaign
-        env.storage().instance().set(&DataKey::Campaign, &campaign);
+        env.storage().instance().set(&DataKey::Campaign(campaign_id), &campaign);
 
         // Extend TTL
         env.storage().instance().extend_ttl(100_000, 100_000);
 
         // Emit DonationReceived event
-        // Event format: (event_name, donor, amount, new_total)
         env.events().publish(
             (symbol_short!("DONATE"), symbol_short!("received")),
-            (donor, amount, campaign.total_donated),
+            (campaign_id, donor, amount, campaign.total_donated),
         );
 
-        log!(&env, "Donation received: {} stroops", amount);
+        log!(&env, "Donation received for campaign {}: {} stroops", campaign_id, amount);
     }
 
-    /// Returns the current campaign data
+    /// Returns a specific campaign by ID
     /// 
     /// # Arguments
     /// * `env` - The contract environment
+    /// * `campaign_id` - The ID of the campaign
     /// 
     /// # Returns
     /// * `Option<Campaign>` - The campaign if it exists, None otherwise
-    pub fn get_campaign(env: Env) -> Option<Campaign> {
-        let initialized: bool = env.storage().instance()
-            .get(&DataKey::Initialized)
-            .unwrap_or(false);
-        
-        if !initialized {
-            return None;
-        }
-
-        env.storage().instance().get(&DataKey::Campaign)
+    pub fn get_campaign(env: Env, campaign_id: u64) -> Option<Campaign> {
+        env.storage().instance().get(&DataKey::Campaign(campaign_id))
     }
 
-    /// Returns the total amount donated to the campaign
+    /// Returns all campaign IDs
     /// 
     /// # Arguments
     /// * `env` - The contract environment
     /// 
     /// # Returns
-    /// * `i128` - The total donated in stroops, or 0 if no campaign exists
-    pub fn get_total_donated(env: Env) -> i128 {
-        match Self::get_campaign(env) {
+    /// * `Vec<u64>` - List of all campaign IDs
+    pub fn get_all_campaign_ids(env: Env) -> Vec<u64> {
+        env.storage().instance()
+            .get(&DataKey::CampaignList)
+            .unwrap_or(Vec::new(&env))
+    }
+
+    /// Returns all campaigns
+    /// 
+    /// # Arguments
+    /// * `env` - The contract environment
+    /// 
+    /// # Returns
+    /// * `Vec<Campaign>` - List of all campaigns
+    pub fn get_all_campaigns(env: Env) -> Vec<Campaign> {
+        let campaign_ids: Vec<u64> = Self::get_all_campaign_ids(env.clone());
+        let mut campaigns = Vec::new(&env);
+        
+        for id in campaign_ids.iter() {
+            if let Some(campaign) = env.storage().instance().get(&DataKey::Campaign(id)) {
+                campaigns.push_back(campaign);
+            }
+        }
+        
+        campaigns
+    }
+
+    /// Returns campaigns created by a specific address
+    /// 
+    /// # Arguments
+    /// * `env` - The contract environment
+    /// * `creator` - The creator's address
+    /// 
+    /// # Returns
+    /// * `Vec<Campaign>` - List of campaigns by this creator
+    pub fn get_campaigns_by_creator(env: Env, creator: Address) -> Vec<Campaign> {
+        let all_campaigns = Self::get_all_campaigns(env.clone());
+        let mut creator_campaigns = Vec::new(&env);
+        
+        for campaign in all_campaigns.iter() {
+            if campaign.creator == creator {
+                creator_campaigns.push_back(campaign);
+            }
+        }
+        
+        creator_campaigns
+    }
+
+    /// Returns the total number of campaigns
+    /// 
+    /// # Arguments
+    /// * `env` - The contract environment
+    /// 
+    /// # Returns
+    /// * `u64` - Total campaign count
+    pub fn get_campaign_count(env: Env) -> u64 {
+        env.storage().instance()
+            .get(&DataKey::CampaignCounter)
+            .unwrap_or(0)
+    }
+
+    /// Returns the total amount donated to a campaign
+    /// 
+    /// # Arguments
+    /// * `env` - The contract environment
+    /// * `campaign_id` - The campaign ID
+    /// 
+    /// # Returns
+    /// * `i128` - The total donated in stroops, or 0 if campaign doesn't exist
+    pub fn get_total_donated(env: Env, campaign_id: u64) -> i128 {
+        match Self::get_campaign(env, campaign_id) {
             Some(campaign) => campaign.total_donated,
             None => 0,
         }
     }
 
-    /// Checks if the campaign has reached its target
+    /// Checks if a campaign has reached its target
     /// 
     /// # Arguments
     /// * `env` - The contract environment
+    /// * `campaign_id` - The campaign ID
     /// 
     /// # Returns
     /// * `bool` - True if target reached, false otherwise
-    pub fn is_target_reached(env: Env) -> bool {
-        match Self::get_campaign(env) {
+    pub fn is_target_reached(env: Env, campaign_id: u64) -> bool {
+        match Self::get_campaign(env, campaign_id) {
             Some(campaign) => campaign.total_donated >= campaign.target_amount,
             None => false,
         }
@@ -225,11 +290,12 @@ impl CrowdfundingContract {
     /// 
     /// # Arguments
     /// * `env` - The contract environment
+    /// * `campaign_id` - The campaign ID
     /// 
     /// # Returns
     /// * `u32` - Progress percentage (capped at 100)
-    pub fn get_progress_percent(env: Env) -> u32 {
-        match Self::get_campaign(env) {
+    pub fn get_progress_percent(env: Env, campaign_id: u64) -> u32 {
+        match Self::get_campaign(env, campaign_id) {
             Some(campaign) => {
                 if campaign.target_amount == 0 {
                     return 0;
@@ -263,12 +329,37 @@ mod test {
         let target = 1_000_000_000i128; // 100 XLM
 
         env.mock_all_auths();
-        client.create_campaign(&creator, &title, &target);
+        let campaign_id = client.create_campaign(&creator, &title, &target);
 
-        let campaign = client.get_campaign().expect("Campaign should exist");
+        assert_eq!(campaign_id, 1);
+        let campaign = client.get_campaign(&campaign_id).expect("Campaign should exist");
+        assert_eq!(campaign.id, 1);
         assert_eq!(campaign.creator, creator);
         assert_eq!(campaign.target_amount, target);
         assert_eq!(campaign.total_donated, 0);
+    }
+
+    #[test]
+    fn test_create_multiple_campaigns() {
+        let env = Env::default();
+        let contract_id = env.register_contract(None, CrowdfundingContract);
+        let client = CrowdfundingContractClient::new(&env, &contract_id);
+
+        let creator = Address::generate(&env);
+        let title1 = String::from_str(&env, "Campaign 1");
+        let title2 = String::from_str(&env, "Campaign 2");
+        let target = 1_000_000_000i128;
+
+        env.mock_all_auths();
+        let id1 = client.create_campaign(&creator, &title1, &target);
+        let id2 = client.create_campaign(&creator, &title2, &target);
+
+        assert_eq!(id1, 1);
+        assert_eq!(id2, 2);
+        assert_eq!(client.get_campaign_count(), 2);
+        
+        let campaigns = client.get_campaigns_by_creator(&creator);
+        assert_eq!(campaigns.len(), 2);
     }
 
     #[test]
@@ -284,28 +375,12 @@ mod test {
         let donation = 100_000_000i128; // 10 XLM
 
         env.mock_all_auths();
-        client.create_campaign(&creator, &title, &target);
-        client.donate(&donor, &donation);
+        let campaign_id = client.create_campaign(&creator, &title, &target);
+        client.donate(&campaign_id, &donor, &donation);
 
-        let campaign = client.get_campaign().expect("Campaign should exist");
+        let campaign = client.get_campaign(&campaign_id).expect("Campaign should exist");
         assert_eq!(campaign.total_donated, donation);
-        assert_eq!(client.get_progress_percent(), 10);
-    }
-
-    #[test]
-    #[should_panic(expected = "Campaign already exists")]
-    fn test_cannot_create_duplicate_campaign() {
-        let env = Env::default();
-        let contract_id = env.register_contract(None, CrowdfundingContract);
-        let client = CrowdfundingContractClient::new(&env, &contract_id);
-
-        let creator = Address::generate(&env);
-        let title = String::from_str(&env, "Test Campaign");
-        let target = 1_000_000_000i128;
-
-        env.mock_all_auths();
-        client.create_campaign(&creator, &title, &target);
-        client.create_campaign(&creator, &title, &target); // Should panic
+        assert_eq!(client.get_progress_percent(&campaign_id), 10);
     }
 
     #[test]
@@ -321,9 +396,32 @@ mod test {
         let donation = 100_000_000i128;
 
         env.mock_all_auths();
-        client.create_campaign(&creator, &title, &target);
+        let campaign_id = client.create_campaign(&creator, &title, &target);
         
         // Creator tries to donate to their own campaign - should panic
-        client.donate(&creator, &donation);
+        client.donate(&campaign_id, &creator, &donation);
+    }
+
+    #[test]
+    fn test_get_all_campaigns() {
+        let env = Env::default();
+        let contract_id = env.register_contract(None, CrowdfundingContract);
+        let client = CrowdfundingContractClient::new(&env, &contract_id);
+
+        let creator1 = Address::generate(&env);
+        let creator2 = Address::generate(&env);
+        let title = String::from_str(&env, "Test Campaign");
+        let target = 1_000_000_000i128;
+
+        env.mock_all_auths();
+        client.create_campaign(&creator1, &title, &target);
+        client.create_campaign(&creator2, &title, &target);
+        client.create_campaign(&creator1, &title, &target);
+
+        let all_campaigns = client.get_all_campaigns();
+        assert_eq!(all_campaigns.len(), 3);
+        
+        let creator1_campaigns = client.get_campaigns_by_creator(&creator1);
+        assert_eq!(creator1_campaigns.len(), 2);
     }
 }
