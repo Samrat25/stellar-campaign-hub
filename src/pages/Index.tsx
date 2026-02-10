@@ -47,34 +47,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      {/* Animated background elements - FIXED: No cursor tracking */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none select-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-      </div>
-
-      {/* Floating particles */}
-      <div className="fixed inset-0 pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-blue-400/30 rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, -30, 0],
-              opacity: [0.3, 0.8, 0.3],
-            }}
-            transition={{
-              duration: 3 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
       </div>
 
       {/* Header */}
@@ -83,13 +60,20 @@ const Index = () => {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-3"
+            className="flex items-center gap-3 cursor-pointer"
+            onClick={() => {
+              if (walletAddress) {
+                setSelectedRole(null);
+              }
+            }}
           >
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl blur-md opacity-50" />
-              <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
+              <img 
+                src="/logo.svg" 
+                alt="Stellar Campaign Hub Logo" 
+                className="relative h-10 w-10 rounded-xl"
+              />
             </div>
             <div>
               <span className="text-xl font-bold text-white block">Stellar Campaign Hub</span>
@@ -425,9 +409,11 @@ const Index = () => {
         <div className="container mx-auto px-4 sm:px-6 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
-                <Sparkles className="h-4 w-4 text-white" />
-              </div>
+              <img 
+                src="/logo.svg" 
+                alt="Stellar Campaign Hub Logo" 
+                className="h-8 w-8 rounded-lg"
+              />
               <div>
                 <div className="text-white font-semibold">Stellar Campaign Hub</div>
                 <div className="text-xs text-slate-400">Built for Stellar Journey to Mastery</div>
