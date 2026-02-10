@@ -13,6 +13,11 @@ import { TransactionStatus } from "./TransactionStatus";
 import { CampaignStatus } from "./CampaignStatus";
 import { CampaignsList } from "./CampaignsList";
 import { DonationHistory } from "./DonationHistory";
+import { CampaignFilters } from "./CampaignFilters";
+import { EnhancedCampaignCard } from "./EnhancedCampaignCard";
+import { PlatformAnalytics } from "./PlatformAnalytics";
+import { CampaignSkeleton } from "./CampaignSkeleton";
+import { getAllCampaigns } from "@/stellar/sorobanClient";
 import {
   donateToCampaign,
   getCampaign,
@@ -40,6 +45,12 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
   const [balance, setBalance] = useState<string>("0");
   const [loadingBalance, setLoadingBalance] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
+  // New state for enhanced UI
+  const [allCampaigns, setAllCampaigns] = useState<Campaign[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [gridViewMode, setGridViewMode] = useState<"grid" | "list">("grid");
 
   // Fetch wallet balance
   useEffect(() => {
@@ -57,27 +68,29 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
     return () => clearInterval(interval);
   }, [walletAddress]);
 
-  // Fetch campaign data - get first campaign for now
+  // Fetch all campaigns
   useEffect(() => {
-    const fetchCampaign = async () => {
+    const fetchCampaigns = async () => {
       setLoading(true);
-      // For the donate form, we'll use the first available campaign
-      // In list view, all campaigns are shown
-      const data = await getCampaign(1); // Get campaign with ID 1
-      setCampaign(data);
+      const data = await getAllCampaigns();
+      setAllCampaigns(data);
+      if (data.length > 0) {
+        setCampaign(data[0]);
+      }
       setLoading(false);
     };
 
-    fetchCampaign();
+    fetchCampaigns();
     
-    // Refresh campaign every 10 seconds
-    const interval = setInterval(fetchCampaign, 10000);
+    // Refresh campaigns every 10 seconds
+    const interval = setInterval(fetchCampaigns, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [refreshTrigger]);
 
   const handleSelectCampaign = (camp: Campaign) => {
     setSelectedCampaign(camp);
-    setViewMode("history");
+    setCampaign(camp);
+    setViewMode("donate");
   };
 
   const handleDonateClick = () => {
@@ -88,6 +101,26 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
     setViewMode("list");
     setSelectedCampaign(null);
   };
+  
+  // Filter and sort campaigns
+  const filteredCampaigns = allCampaigns
+    .filter(c => 
+      c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.creator.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "newest": return b.id - a.id;
+        case "oldest": return a.id - b.id;
+        case "most-funded": return Number(b.totalDonated) - Number(a.totalDonated);
+        case "least-funded": return Number(a.totalDonated) - Number(b.totalDonated);
+        case "closest-to-goal":
+          const aProgress = Number(a.totalDonated) / Number(a.targetAmount);
+          const bProgress = Number(b.totalDonated) / Number(b.targetAmount);
+          return bProgress - aProgress;
+        default: return 0;
+      }
+    });
 
   const handleDonate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,7 +177,7 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="w-full max-w-4xl mx-auto"
+        className="w-full max-w-7xl mx-auto space-y-8"
       >
         <button
           onClick={onBack}
@@ -158,7 +191,7 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6 rounded-xl border border-white/10 bg-slate-900/50 backdrop-blur-sm p-4"
+          className="rounded-xl border border-white/10 bg-slate-900/50 backdrop-blur-sm p-4"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-slate-400">
@@ -177,23 +210,54 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
           </div>
         </motion.div>
 
+        {/* Analytics Dashboard */}
+        <PlatformAnalytics campaigns={allCampaigns} isLoading={loading} />
+
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold text-white mb-2">All Campaigns</h2>
-            <p className="text-slate-400">Click on a campaign to view donation history or donate</p>
+            <h2 className="text-3xl font-bold text-white mb-2">Browse Campaigns</h2>
+            <p className="text-slate-400">Discover and support amazing projects</p>
           </div>
-          <Button
-            onClick={handleDonateClick}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700"
-          >
-            <Heart className="mr-2 h-4 w-4" />
-            Donate Now
-          </Button>
         </div>
 
-        {/* Campaigns List */}
-        <CampaignsList onSelectCampaign={handleSelectCampaign} refreshTrigger={refreshTrigger} />
+        {/* Filters */}
+        <CampaignFilters
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          viewMode={gridViewMode}
+          onViewModeChange={setGridViewMode}
+          totalResults={filteredCampaigns.length}
+        />
+
+        {/* Campaigns Grid/List */}
+        {loading ? (
+          <CampaignSkeleton viewMode={gridViewMode} count={6} />
+        ) : filteredCampaigns.length === 0 ? (
+          <div className="text-center py-12 rounded-xl border border-white/10 bg-slate-900/50">
+            <p className="text-slate-400 text-lg">No campaigns found</p>
+            <p className="text-slate-500 text-sm mt-2">
+              Try adjusting your search or filters
+            </p>
+          </div>
+        ) : (
+          <div className={
+            gridViewMode === "grid"
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              : "space-y-4"
+          }>
+            {filteredCampaigns.map(camp => (
+              <EnhancedCampaignCard
+                key={camp.id}
+                campaign={camp}
+                viewMode={gridViewMode}
+                onDonate={handleSelectCampaign}
+              />
+            ))}
+          </div>
+        )}
       </motion.div>
     );
   }

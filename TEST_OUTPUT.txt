@@ -1,0 +1,16 @@
+✓ src/test/example.test.ts (10 tests) 17ms
+  ✓ Campaign Validation > should validate campaign has required fields 4ms
+  ✓ Campaign Validation > should calculate funding percentage correctly 1ms
+  ✓ Campaign Validation > should validate campaign status is valid 2ms
+  ✓ Campaign Validation > should validate creator address format 1ms
+  ✓ Campaign Validation > should validate amounts are positive numbers 1ms
+  ✓ Wallet Address Validation > should validate Stellar address format 1ms
+  ✓ Wallet Address Validation > should reject invalid address formats 1ms
+  ✓ Amount Conversion > should convert stroops to XLM correctly 0ms
+  ✓ Amount Conversion > should convert XLM to stroops correctly 1ms
+  ✓ Amount Conversion > should handle decimal XLM amounts 0ms
+
+Test Files  1 passed (1)
+     Tests  10 passed (10)
+  Start at  13:46:33
+  Duration  6.29s

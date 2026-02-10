@@ -21,7 +21,7 @@ const TESTNET_RPC_URL = "https://soroban-testnet.stellar.org";
 const TESTNET_NETWORK_PASSPHRASE = Networks.TESTNET;
 
 // Contract ID - Replace with your deployed contract address
-export const CONTRACT_ID = "CDN5LREO43VK4KKCZXAEML7P4FYSJ2YYX2QELRALPC76ZELS2QME54EG";
+export const CONTRACT_ID = "CBIRTVTRK5KJ3HSHLAWUQPO2IC6UVXMGFDUJPLL5QK447YPQ22WW77R2";
 
 // Lazy initialize Soroban RPC server only when needed
 let _server: rpc.Server | null = null;
