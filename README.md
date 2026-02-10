@@ -79,22 +79,14 @@ Live transaction showing successful donation to campaign:
 
 **10 Tests Passing ✅**
 
-```
-✓ src/test/example.test.ts (10 tests) 17ms
-  ✓ Campaign Validation > should validate campaign has required fields
-  ✓ Campaign Validation > should calculate funding percentage correctly
-  ✓ Campaign Validation > should validate campaign status is valid
-  ✓ Campaign Validation > should validate creator address format
-  ✓ Campaign Validation > should validate amounts are positive numbers
-  ✓ Wallet Address Validation > should validate Stellar address format
-  ✓ Wallet Address Validation > should reject invalid address formats
-  ✓ Amount Conversion > should convert stroops to XLM correctly
-  ✓ Amount Conversion > should convert XLM to stroops correctly
-  ✓ Amount Conversion > should handle decimal XLM amounts
+![Test Results](docs/test-results.png)
 
-Test Files  1 passed (1)
-     Tests  10 passed (10)
-```
+*All 10 tests passing: Campaign validation, wallet validation, and amount conversion*
+
+**Test Coverage:**
+- ✅ Campaign Validation (5 tests)
+- ✅ Wallet Address Validation (2 tests)
+- ✅ Amount Conversion (3 tests)
 
 **Run tests yourself:**
 ```bash
