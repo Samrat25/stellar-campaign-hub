@@ -140,13 +140,26 @@ export const CreateCampaign = ({
               onClose={txStatus === "failed" ? resetForm : undefined}
             />
             {txStatus === "success" && (
-              <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground mb-4">
-                  Your campaign has been created! Donors can now contribute.
+              <div className="mt-6 space-y-3">
+                <p className="text-sm text-muted-foreground text-center mb-4">
+                  🎉 Campaign created successfully! What would you like to do next?
                 </p>
-                <Button onClick={onBack} variant="outline">
-                  Go to Donor View
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button 
+                    onClick={resetForm} 
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    <Rocket className="mr-2 h-4 w-4" />
+                    Create Another Campaign
+                  </Button>
+                  <Button 
+                    onClick={onBack}
+                    className="flex-1 bg-gradient-primary"
+                  >
+                    View All Campaigns
+                  </Button>
+                </div>
               </div>
             )}
           </div>

@@ -42,7 +42,8 @@ const Index = () => {
 
   const handleCampaignCreated = () => {
     setCampaignCreated(true);
-    setSelectedRole("donor");
+    // Don't automatically switch to donor - let user choose
+    // setSelectedRole("donor");
   };
 
   return (
