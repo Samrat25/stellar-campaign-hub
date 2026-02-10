@@ -60,7 +60,7 @@ export const createCampaign = async (
   creatorAddress: string
 ): Promise<TransactionResult> => {
   try {
-// Get account from network
+    // Get account from network
     const account = await getServer().getAccount(creatorAddress);
     
     // Create contract instance
@@ -68,6 +68,9 @@ export const createCampaign = async (
     
     // Convert target amount to stroops (1 XLM = 10,000,000 stroops)
     const targetInStroops = BigInt(Math.floor(targetAmount * 10_000_000));
+    
+    // Default campaign duration: 30 days
+    const durationDays = BigInt(30);
     
     // Build transaction
     const transaction = new TransactionBuilder(account, {
@@ -79,7 +82,8 @@ export const createCampaign = async (
           "create_campaign",
           Address.fromString(creatorAddress).toScVal(),
           nativeToScVal(title, { type: "string" }),
-          nativeToScVal(targetInStroops, { type: "i128" })
+          nativeToScVal(targetInStroops, { type: "i128" }),
+          nativeToScVal(durationDays, { type: "u64" }) // NEW: Add duration parameter
         )
       )
       .setTimeout(30)
