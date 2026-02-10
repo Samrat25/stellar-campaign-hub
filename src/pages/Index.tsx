@@ -340,28 +340,148 @@ const Index = () => {
                 </div>
               </section>
 
-              {/* CTA Section */}
+              {/* Portal Overview Section - Inspired Design */}
               <section className="py-12">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  className="relative rounded-3xl border border-white/10 bg-gradient-to-br from-blue-500/10 to-purple-500/10 backdrop-blur-sm p-12 text-center overflow-hidden"
+                  className="relative rounded-3xl border border-cyan-500/20 bg-gradient-to-br from-slate-900/90 to-slate-800/90 backdrop-blur-xl overflow-hidden"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
-                  <div className="relative z-10">
-                    <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-                      Ready to Get Started?
+                  {/* Gradient glow effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-blue-500/10 to-purple-500/10" />
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 bg-gradient-to-b from-cyan-500/20 to-transparent blur-3xl" />
+                  
+                  <div className="relative z-10 p-8 sm:p-12 lg:p-16">
+                    {/* Badge */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-medium mb-8"
+                    >
+                      <Shield className="h-4 w-4" />
+                      <span>Powered by Stellar Soroban Smart Contracts</span>
+                    </motion.div>
+
+                    {/* Main Heading */}
+                    <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+                      <span className="text-cyan-400">Transparent</span> Crowdfunding for{" "}
+                      <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                        Verified
+                      </span>{" "}
+                      Projects
                     </h2>
-                    <p className="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">
-                      Connect your wallet and start creating or supporting campaigns on Stellar blockchain
+
+                    {/* Description */}
+                    <p className="text-lg sm:text-xl text-slate-300 max-w-3xl mb-10 leading-relaxed">
+                      A decentralized platform where creators launch campaigns and donors support innovation with complete on-chain transparency and trustless verification.
                     </p>
-                    <WalletSelector
-                      onConnect={handleConnect}
-                      onDisconnect={handleDisconnect}
-                      connectedAddress={walletAddress}
-                      walletType={walletType}
-                    />
+
+                    {/* CTA Buttons */}
+                    <div className="flex flex-col sm:flex-row items-center gap-4 mb-12">
+                      <WalletSelector
+                        onConnect={handleConnect}
+                        onDisconnect={handleDisconnect}
+                        connectedAddress={walletAddress}
+                        walletType={walletType}
+                      />
+                      <span className="text-slate-400 text-sm">
+                        Connect with Stellar Wallet to get started
+                      </span>
+                    </div>
+
+                    {/* Portal Preview Image */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.2 }}
+                      className="relative rounded-2xl border border-cyan-500/20 bg-slate-950/50 backdrop-blur-sm overflow-hidden shadow-2xl"
+                    >
+                      {/* Glow effect on image */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/10 to-transparent" />
+                      
+                      {/* Mock Portal Interface */}
+                      <div className="relative">
+                        {/* Portal Header */}
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700/50 bg-slate-900/80">
+                          <div className="flex items-center gap-3">
+                            <div className="flex gap-1.5">
+                              <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                              <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                              <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                            </div>
+                            <span className="text-sm text-slate-400 ml-4">Stellar Campaign Hub</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-medium">
+                              Connected
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Portal Content */}
+                        <div className="p-6 bg-gradient-to-br from-slate-900 to-slate-950">
+                          {/* Search Bar */}
+                          <div className="mb-6">
+                            <div className="relative">
+                              <input
+                                type="text"
+                                placeholder="Search campaigns by title or creator..."
+                                className="w-full px-4 py-3 pl-10 rounded-xl bg-slate-800/50 border border-slate-700/50 text-slate-300 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
+                                disabled
+                              />
+                              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Campaign Cards Grid */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {[
+                              { title: "Education Fund", raised: "500", goal: "5000", progress: 10, status: "Active" },
+                              { title: "Tech Innovation", raised: "2500", goal: "10000", progress: 25, status: "Active" },
+                              { title: "Community Project", raised: "8000", goal: "10000", progress: 80, status: "Active" }
+                            ].map((campaign, i) => (
+                              <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.3 + i * 0.1 }}
+                                className="rounded-xl border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm p-4 hover:border-cyan-500/30 transition-all"
+                              >
+                                <div className="flex items-start justify-between mb-3">
+                                  <h4 className="text-white font-semibold text-sm">{campaign.title}</h4>
+                                  <span className="px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs">
+                                    {campaign.status}
+                                  </span>
+                                </div>
+                                <div className="space-y-2">
+                                  <div className="flex justify-between text-xs text-slate-400">
+                                    <span>{campaign.raised} XLM raised</span>
+                                    <span>{campaign.goal} XLM goal</span>
+                                  </div>
+                                  <div className="w-full h-2 rounded-full bg-slate-700/50 overflow-hidden">
+                                    <div 
+                                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"
+                                      style={{ width: `${campaign.progress}%` }}
+                                    />
+                                  </div>
+                                  <div className="text-xs text-cyan-400 font-medium">
+                                    {campaign.progress}% funded
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
                   </div>
                 </motion.div>
               </section>
