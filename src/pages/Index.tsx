@@ -1,11 +1,15 @@
 /**
- * Stellar Crowdfunding dApp
- * Modern, clean landing page design
+ * Stellar Campaign Hub
+ * Production-grade Web3 crowdfunding platform
+ * Modern, minimal, hackathon-ready UI
  */
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Rocket, Shield, Zap, TrendingUp, Users, Target } from "lucide-react";
+import { 
+  Sparkles, Rocket, Shield, Zap, TrendingUp, Users, Target, 
+  ArrowRight, Github, ExternalLink, CheckCircle2, Clock, Wallet
+} from "lucide-react";
 import { WalletSelector } from "@/components/WalletSelector";
 import { RoleSelector, UserRole } from "@/components/RoleSelector";
 import { CreateCampaign } from "@/components/CreateCampaign";
@@ -42,138 +46,341 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 relative overflow-hidden">
       {/* Animated background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+      </div>
+
+      {/* Floating particles */}
+      <div className="fixed inset-0 pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-blue-400/30 rounded-full"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -30, 0],
+              opacity: [0.3, 0.8, 0.3],
+            }}
+            transition={{
+              duration: 3 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
+          />
+        ))}
       </div>
 
       {/* Header */}
-      <header className="relative z-40 border-b border-white/10 bg-slate-900/50 backdrop-blur-xl">
-        <div className="container mx-auto flex items-center justify-between px-6 py-4">
+      <header className="relative z-40 border-b border-white/10 bg-slate-900/50 backdrop-blur-xl sticky top-0">
+        <div className="container mx-auto flex items-center justify-between px-4 sm:px-6 py-4">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-3"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600">
-              <Sparkles className="h-5 w-5 text-white" />
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl blur-md opacity-50" />
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600">
+                <Sparkles className="h-5 w-5 text-white" />
+              </div>
             </div>
-            <span className="text-xl font-bold text-white">StellarFund</span>
+            <div>
+              <span className="text-xl font-bold text-white block">Stellar Campaign Hub</span>
+              <span className="text-xs text-slate-400 hidden sm:block">Decentralized Crowdfunding</span>
+            </div>
           </motion.div>
 
-          <WalletSelector
-            onConnect={handleConnect}
-            onDisconnect={handleDisconnect}
-            connectedAddress={walletAddress}
-            walletType={walletType}
-          />
+          <div className="flex items-center gap-4">
+            <WalletSelector
+              onConnect={handleConnect}
+              onDisconnect={handleDisconnect}
+              connectedAddress={walletAddress}
+              walletType={walletType}
+            />
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 container mx-auto px-6 py-12">
+      <main className="relative z-10 container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <AnimatePresence mode="wait">
           {!walletAddress ? (
             // Landing Page
             <motion.div
               key="landing"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col items-center justify-center min-h-[80vh]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-16 sm:space-y-24"
             >
               {/* Hero Section */}
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="text-center mb-12"
-              >
-                <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-                  Crowdfunding on
-                  <span className="block bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
-                    Stellar Blockchain
-                  </span>
-                </h1>
-                <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-8">
-                  Create campaigns and accept donations in XLM using Soroban smart contracts with built-in role separation.
-                </p>
-                <WalletSelector
-                  onConnect={handleConnect}
-                  onDisconnect={handleDisconnect}
-                  connectedAddress={walletAddress}
-                  walletType={walletType}
-                />
-              </motion.div>
-
-              {/* Features Grid */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full mt-16"
-              >
-                {[
-                  {
-                    icon: Shield,
-                    title: "Secure & Trustless",
-                    description: "Smart contract enforced role separation",
-                    color: "from-blue-500 to-cyan-500"
-                  },
-                  {
-                    icon: Zap,
-                    title: "Fast Transactions",
-                    description: "Powered by Stellar's lightning-fast network",
-                    color: "from-purple-500 to-pink-500"
-                  },
-                  {
-                    icon: TrendingUp,
-                    title: "Real-Time Updates",
-                    description: "See donations and progress instantly",
-                    color: "from-orange-500 to-red-500"
-                  }
-                ].map((feature, i) => (
+              <section className="flex flex-col lg:flex-row items-center justify-between gap-12 min-h-[70vh] py-12">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="flex-1 text-center lg:text-left"
+                >
                   <motion.div
-                    key={feature.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 + i * 0.1 }}
-                    className="group relative rounded-2xl border border-white/10 bg-slate-900/50 backdrop-blur-sm p-6 hover:border-white/20 transition-all"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium mb-6"
                   >
-                    <div className={`inline-flex rounded-xl bg-gradient-to-br ${feature.color} p-3 mb-4`}>
-                      <feature.icon className="h-6 w-6 text-white" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-white mb-2">
-                      {feature.title}
-                    </h3>
-                    <p className="text-sm text-slate-400">
-                      {feature.description}
-                    </p>
+                    <Sparkles className="h-4 w-4" />
+                    <span>Powered by Stellar Soroban</span>
                   </motion.div>
-                ))}
-              </motion.div>
 
-              {/* Stats */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8 }}
-                className="grid grid-cols-3 gap-8 mt-16 max-w-3xl w-full"
-              >
-                {[
-                  { icon: Target, label: "Smart Contracts", value: "Soroban" },
-                  { icon: Users, label: "Wallets", value: "3 Supported" },
-                  { icon: Rocket, label: "Network", value: "Testnet" }
-                ].map((stat) => (
-                  <div key={stat.label} className="text-center">
-                    <stat.icon className="h-8 w-8 text-blue-400 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-white">{stat.value}</div>
-                    <div className="text-sm text-slate-400">{stat.label}</div>
+                  <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+                    Fund Ideas.
+                    <br />
+                    <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent">
+                      Empower Innovation.
+                    </span>
+                  </h1>
+
+                  <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mb-8 leading-relaxed">
+                    The first decentralized crowdfunding platform on Stellar blockchain. 
+                    Create campaigns, accept donations in XLM, and track everything on-chain with complete transparency.
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+                    <WalletSelector
+                      onConnect={handleConnect}
+                      onDisconnect={handleDisconnect}
+                      connectedAddress={walletAddress}
+                      walletType={walletType}
+                    />
+                    <motion.a
+                      href="https://github.com/Samrat25/stellar-campaign-hub"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-800/50 border border-slate-700 text-white font-medium hover:bg-slate-800 hover:border-slate-600 transition-all"
+                    >
+                      <Github className="h-5 w-5" />
+                      <span>View on GitHub</span>
+                      <ExternalLink className="h-4 w-4" />
+                    </motion.a>
                   </div>
-                ))}
-              </motion.div>
+
+                  {/* Quick stats */}
+                  <div className="grid grid-cols-3 gap-4 mt-12 max-w-md mx-auto lg:mx-0">
+                    {[
+                      { value: "100%", label: "Transparent" },
+                      { value: "< 5s", label: "Fast TX" },
+                      { value: "3", label: "Wallets" }
+                    ].map((stat, i) => (
+                      <motion.div
+                        key={stat.label}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 + i * 0.1 }}
+                        className="text-center"
+                      >
+                        <div className="text-2xl sm:text-3xl font-bold text-white mb-1">{stat.value}</div>
+                        <div className="text-xs sm:text-sm text-slate-400">{stat.label}</div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+
+                {/* Hero Illustration */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex-1 relative hidden lg:block"
+                >
+                  <div className="relative w-full max-w-lg mx-auto">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-3xl blur-3xl" />
+                    <img 
+                      src="/hero-illustration.svg" 
+                      alt="Crowdfunding Illustration" 
+                      className="relative z-10 w-full h-auto"
+                    />
+                  </div>
+                </motion.div>
+              </section>
+
+              {/* How It Works */}
+              <section className="py-12">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="text-center mb-12"
+                >
+                  <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                    How It Works
+                  </h2>
+                  <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+                    Three simple steps to start your crowdfunding journey
+                  </p>
+                </motion.div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                  {[
+                    {
+                      step: "01",
+                      icon: Rocket,
+                      title: "Create Campaign",
+                      description: "Set up your campaign with a title and funding goal. Smart contracts handle everything securely.",
+                      color: "from-blue-500 to-cyan-500"
+                    },
+                    {
+                      step: "02",
+                      icon: Wallet,
+                      title: "Donate Securely",
+                      description: "Support campaigns with XLM. All transactions are verified on-chain with instant confirmation.",
+                      color: "from-purple-500 to-pink-500"
+                    },
+                    {
+                      step: "03",
+                      icon: TrendingUp,
+                      title: "Track Progress",
+                      description: "Monitor donations in real-time. Complete transparency with every transaction recorded on Stellar.",
+                      color: "from-orange-500 to-red-500"
+                    }
+                  ].map((item, i) => (
+                    <motion.div
+                      key={item.step}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.1 }}
+                      className="relative group"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
+                      <div className="relative rounded-2xl border border-white/10 bg-slate-900/50 backdrop-blur-sm p-8 hover:border-white/20 transition-all h-full">
+                        <div className="flex items-start gap-4 mb-4">
+                          <div className={`inline-flex rounded-xl bg-gradient-to-br ${item.color} p-3`}>
+                            <item.icon className="h-6 w-6 text-white" />
+                          </div>
+                          <span className="text-4xl font-bold text-slate-700">{item.step}</span>
+                        </div>
+                        <h3 className="text-xl font-semibold text-white mb-3">
+                          {item.title}
+                        </h3>
+                        <p className="text-slate-400 leading-relaxed">
+                          {item.description}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </section>
+
+              {/* Features */}
+              <section className="py-12">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="text-center mb-12"
+                >
+                  <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                    Why Stellar Campaign Hub?
+                  </h2>
+                  <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+                    Built on Stellar's lightning-fast blockchain with enterprise-grade security
+                  </p>
+                </motion.div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                  {[
+                    {
+                      icon: Shield,
+                      title: "Secure & Trustless",
+                      description: "Smart contract enforced role separation. Creators can't donate to their own campaigns.",
+                      color: "from-blue-500 to-cyan-500"
+                    },
+                    {
+                      icon: Zap,
+                      title: "Lightning Fast",
+                      description: "Transactions confirm in 3-5 seconds on Stellar's high-performance network.",
+                      color: "from-purple-500 to-pink-500"
+                    },
+                    {
+                      icon: TrendingUp,
+                      title: "Real-Time Updates",
+                      description: "See donations and progress instantly with live blockchain data.",
+                      color: "from-orange-500 to-red-500"
+                    },
+                    {
+                      icon: CheckCircle2,
+                      title: "100% Transparent",
+                      description: "Every transaction is verifiable on Stellar Explorer. No hidden fees.",
+                      color: "from-green-500 to-emerald-500"
+                    },
+                    {
+                      icon: Users,
+                      title: "Multi-Wallet Support",
+                      description: "Connect with Freighter, Albedo, or xBull wallet seamlessly.",
+                      color: "from-cyan-500 to-blue-500"
+                    },
+                    {
+                      icon: Clock,
+                      title: "Low Fees",
+                      description: "Minimal transaction costs thanks to Stellar's efficient consensus.",
+                      color: "from-pink-500 to-purple-500"
+                    }
+                  ].map((feature, i) => (
+                    <motion.div
+                      key={feature.title}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.05 }}
+                      className="group relative rounded-2xl border border-white/10 bg-slate-900/50 backdrop-blur-sm p-6 hover:border-white/20 transition-all"
+                    >
+                      <div className={`inline-flex rounded-xl bg-gradient-to-br ${feature.color} p-3 mb-4`}>
+                        <feature.icon className="h-6 w-6 text-white" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-white mb-2">
+                        {feature.title}
+                      </h3>
+                      <p className="text-sm text-slate-400 leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </motion.div>
+                  ))}
+                </div>
+              </section>
+
+              {/* CTA Section */}
+              <section className="py-12">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="relative rounded-3xl border border-white/10 bg-gradient-to-br from-blue-500/10 to-purple-500/10 backdrop-blur-sm p-12 text-center overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+                  <div className="relative z-10">
+                    <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                      Ready to Get Started?
+                    </h2>
+                    <p className="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">
+                      Connect your wallet and start creating or supporting campaigns on Stellar blockchain
+                    </p>
+                    <WalletSelector
+                      onConnect={handleConnect}
+                      onDisconnect={handleDisconnect}
+                      connectedAddress={walletAddress}
+                      walletType={walletType}
+                    />
+                  </div>
+                </motion.div>
+              </section>
             </motion.div>
           ) : selectedRole === null ? (
             // Role Selection
@@ -214,19 +421,50 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-white/10 mt-auto">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-400">
-            <p>Built for Stellar Journey to Mastery • Yellow Belt</p>
-            <div className="flex items-center gap-2">
-              <span className="flex items-center gap-2">
+      <footer className="relative z-10 border-t border-white/10 mt-16">
+        <div className="container mx-auto px-4 sm:px-6 py-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <div className="text-white font-semibold">Stellar Campaign Hub</div>
+                <div className="text-xs text-slate-400">Built for Stellar Journey to Mastery</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-6 text-sm text-slate-400">
+              <a 
+                href="https://github.com/Samrat25/stellar-campaign-hub" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 hover:text-white transition-colors"
+              >
+                <Github className="h-4 w-4" />
+                <span>GitHub</span>
+              </a>
+              <a 
+                href="https://stellar.expert/explorer/testnet" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 hover:text-white transition-colors"
+              >
+                <ExternalLink className="h-4 w-4" />
+                <span>Explorer</span>
+              </a>
+              <div className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
                 </span>
-                Testnet
-              </span>
+                <span>Testnet</span>
+              </div>
             </div>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-white/10 text-center text-sm text-slate-500">
+            <p>© 2026 Stellar Campaign Hub. Built with ❤️ on Stellar Blockchain.</p>
           </div>
         </div>
       </footer>

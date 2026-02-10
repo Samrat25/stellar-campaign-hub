@@ -1,0 +1,56 @@
+<svg width="600" height="400" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="heroGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0.8" />
+    </linearGradient>
+    <linearGradient id="heroGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.6" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circles -->
+  <circle cx="150" cy="150" r="120" fill="url(#heroGrad1)" opacity="0.1"/>
+  <circle cx="450" cy="250" r="100" fill="url(#heroGrad2)" opacity="0.1"/>
+  
+  <!-- Main illustration - Crowdfunding concept -->
+  <!-- Central platform/stage -->
+  <rect x="200" y="250" width="200" height="120" rx="10" fill="url(#heroGrad1)" opacity="0.3"/>
+  
+  <!-- Campaign cards floating -->
+  <g opacity="0.8">
+    <rect x="100" y="100" width="120" height="80" rx="8" fill="url(#heroGrad2)"/>
+    <rect x="110" y="120" width="80" height="4" rx="2" fill="#fff" opacity="0.3"/>
+    <rect x="110" y="130" width="60" height="4" rx="2" fill="#fff" opacity="0.3"/>
+    <rect x="110" y="150" width="90" height="8" rx="4" fill="#fff" opacity="0.5"/>
+  </g>
+  
+  <g opacity="0.8">
+    <rect x="380" y="80" width="120" height="80" rx="8" fill="url(#heroGrad1)"/>
+    <rect x="390" y="100" width="80" height="4" rx="2" fill="#fff" opacity="0.3"/>
+    <rect x="390" y="110" width="60" height="4" rx="2" fill="#fff" opacity="0.3"/>
+    <rect x="390" y="130" width="90" height="8" rx="4" fill="#fff" opacity="0.5"/>
+  </g>
+  
+  <!-- Connecting lines (network effect) -->
+  <line x1="160" y1="140" x2="250" y2="260" stroke="url(#heroGrad2)" stroke-width="2" opacity="0.3"/>
+  <line x1="440" y1="120" x2="350" y2="260" stroke="url(#heroGrad1)" stroke-width="2" opacity="0.3"/>
+  
+  <!-- Coins/tokens floating -->
+  <circle cx="320" cy="180" r="15" fill="#fbbf24" opacity="0.8"/>
+  <circle cx="280" cy="200" r="12" fill="#fbbf24" opacity="0.6"/>
+  <circle cx="350" cy="190" r="10" fill="#fbbf24" opacity="0.7"/>
+  
+  <!-- Stellar stars -->
+  <circle cx="80" cy="80" r="4" fill="#3b82f6" opacity="0.8"/>
+  <circle cx="520" cy="100" r="3" fill="#8b5cf6" opacity="0.8"/>
+  <circle cx="500" cy="300" r="4" fill="#06b6d4" opacity="0.8"/>
+  <circle cx="100" cy="320" r="3" fill="#3b82f6" opacity="0.8"/>
+  
+  <!-- Progress indicators -->
+  <g transform="translate(220, 280)">
+    <rect width="160" height="8" rx="4" fill="#1e293b" opacity="0.5"/>
+    <rect width="100" height="8" rx="4" fill="url(#heroGrad2)"/>
+  </g>
+</svg>
