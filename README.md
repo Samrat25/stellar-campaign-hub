@@ -45,7 +45,7 @@ Live transaction showing successful donation to campaign:
 **How to verify transactions:**
 1. Make a donation in the app
 2. Copy the transaction hash from the success message
-3. Visit: `https://stellar.expert/explorer/testnet/tx/YOUR_TRANSACTION_HASH`
+3. Visit: `https://stellar.expert/explorer/testnet/tx/CBIRTVTRK5KJ3HSHLAWUQPO2IC6UVXMGFDUJPLL5QK447YPQ22WW77R2`
 4. View complete transaction details on Stellar Explorer
 
 ---
