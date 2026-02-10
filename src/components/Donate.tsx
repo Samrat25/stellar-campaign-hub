@@ -74,7 +74,9 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
       setLoading(true);
       const data = await getAllCampaigns();
       setAllCampaigns(data);
-      if (data.length > 0) {
+      
+      // Only set default campaign if no campaign is selected
+      if (data.length > 0 && !campaign && !selectedCampaign) {
         setCampaign(data[0]);
       }
       setLoading(false);
@@ -85,7 +87,7 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
     // Refresh campaigns every 10 seconds
     const interval = setInterval(fetchCampaigns, 10000);
     return () => clearInterval(interval);
-  }, [refreshTrigger]);
+  }, [refreshTrigger]); // Removed campaign and selectedCampaign from dependencies
 
   const handleSelectCampaign = (camp: Campaign) => {
     setSelectedCampaign(camp);
@@ -127,6 +129,7 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
 
     if (!amount || parseFloat(amount) <= 0 || !campaign) return;
 
+    const currentCampaignId = campaign.id; // Store current campaign ID
     setTxStatus("pending");
 
     const result = await donateToCampaign(campaign.id, parseFloat(amount), walletAddress);
@@ -135,12 +138,17 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
     setTxStatus(result.status);
 
     if (result.status === "success") {
-      // Refresh campaign data and balance
-      const updatedCampaign = await getCampaign(campaign.id);
+      // Refresh the SAME campaign data (not switch to another)
+      const updatedCampaign = await getCampaign(currentCampaignId);
       setCampaign(updatedCampaign);
+      setSelectedCampaign(updatedCampaign);
+      
+      // Refresh balance
       const newBalance = await getWalletBalance(walletAddress);
       setBalance(newBalance);
       setAmount("");
+      
+      // Trigger refresh of all campaigns list (but don't change selected campaign)
       setRefreshTrigger(prev => prev + 1);
     }
   };
