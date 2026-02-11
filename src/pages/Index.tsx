@@ -6,14 +6,17 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Sparkles, Rocket, Shield, Zap, TrendingUp, Users, Target, 
+import {
+  Sparkles, Rocket, Shield, Zap, TrendingUp, Users, Target,
   ArrowRight, Github, ExternalLink, CheckCircle2, Clock, Wallet
 } from "lucide-react";
 import { WalletSelector } from "@/components/WalletSelector";
 import { RoleSelector, UserRole } from "@/components/RoleSelector";
 import { CreateCampaign } from "@/components/CreateCampaign";
 import { Donate } from "@/components/Donate";
+import { LiveDonationFeed } from "@/components/LiveDonationFeed";
+import { TokenBalance } from "@/components/TokenBalance";
+import { SSTVault } from "@/components/SSTVault";
 
 const Index = () => {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
@@ -70,9 +73,9 @@ const Index = () => {
           >
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl blur-md opacity-50" />
-              <img 
-                src="/logo.svg" 
-                alt="Stellar Campaign Hub Logo" 
+              <img
+                src="/logo.svg"
+                alt="Stellar Campaign Hub Logo"
                 className="relative h-10 w-10 rounded-xl"
               />
             </div>
@@ -132,7 +135,7 @@ const Index = () => {
                   </h1>
 
                   <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mb-8 leading-relaxed">
-                    The first decentralized crowdfunding platform on Stellar blockchain. 
+                    The first decentralized crowdfunding platform on Stellar blockchain.
                     Create campaigns, accept donations in XLM, and track everything on-chain with complete transparency.
                   </p>
 
@@ -187,9 +190,9 @@ const Index = () => {
                 >
                   <div className="relative w-full max-w-lg mx-auto">
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-3xl blur-3xl" />
-                    <img 
-                      src="/hero-illustration.svg" 
-                      alt="Crowdfunding Illustration" 
+                    <img
+                      src="/hero-illustration.svg"
+                      alt="Crowdfunding Illustration"
                       className="relative z-10 w-full h-auto"
                     />
                   </div>
@@ -352,7 +355,7 @@ const Index = () => {
                   {/* Gradient glow effect */}
                   <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-blue-500/10 to-purple-500/10" />
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 bg-gradient-to-b from-cyan-500/20 to-transparent blur-3xl" />
-                  
+
                   <div className="relative z-10 p-8 sm:p-12 lg:p-16">
                     {/* Badge */}
                     <motion.div
@@ -402,7 +405,7 @@ const Index = () => {
                     >
                       {/* Glow effect on image */}
                       <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/10 to-transparent" />
-                      
+
                       {/* Mock Portal Interface */}
                       <div className="relative">
                         {/* Portal Header */}
@@ -468,7 +471,7 @@ const Index = () => {
                                     <span>{campaign.goal} XLM goal</span>
                                   </div>
                                   <div className="w-full h-2 rounded-full bg-slate-700/50 overflow-hidden">
-                                    <div 
+                                    <div
                                       className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"
                                       style={{ width: `${campaign.progress}%` }}
                                     />
@@ -488,14 +491,18 @@ const Index = () => {
               </section>
             </motion.div>
           ) : selectedRole === null ? (
-            // Role Selection
+            // Role Selection + Dashboard
             <motion.div
               key="roles"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
+              className="space-y-8"
             >
               <RoleSelector onSelectRole={handleRoleSelect} />
+
+              {/* Live Feed */}
+              <LiveDonationFeed />
             </motion.div>
           ) : selectedRole === "creator" ? (
             // Creator Flow
@@ -511,6 +518,16 @@ const Index = () => {
                 onCampaignCreated={handleCampaignCreated}
               />
             </motion.div>
+          ) : selectedRole === "vault" ? (
+            // SST Vault Flow
+            <motion.div
+              key="vault"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <SSTVault walletAddress={walletAddress} onBack={handleBack} />
+            </motion.div>
           ) : (
             // Donor Flow
             <motion.div
@@ -518,8 +535,12 @@ const Index = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
+              className="space-y-8"
             >
               <Donate walletAddress={walletAddress} onBack={handleBack} />
+
+              {/* Live Feed below donation form */}
+              <LiveDonationFeed />
             </motion.div>
           )}
         </AnimatePresence>
@@ -530,9 +551,9 @@ const Index = () => {
         <div className="container mx-auto px-4 sm:px-6 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <img 
-                src="/logo.svg" 
-                alt="Stellar Campaign Hub Logo" 
+              <img
+                src="/logo.svg"
+                alt="Stellar Campaign Hub Logo"
                 className="h-8 w-8 rounded-lg"
               />
               <div>
@@ -542,18 +563,18 @@ const Index = () => {
             </div>
 
             <div className="flex items-center gap-6 text-sm text-slate-400">
-              <a 
-                href="https://github.com/Samrat25/stellar-campaign-hub" 
-                target="_blank" 
+              <a
+                href="https://github.com/Samrat25/stellar-campaign-hub"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 hover:text-white transition-colors"
               >
                 <Github className="h-4 w-4" />
                 <span>GitHub</span>
               </a>
-              <a 
-                href="https://stellar.expert/explorer/testnet" 
-                target="_blank" 
+              <a
+                href="https://stellar.expert/explorer/testnet"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 hover:text-white transition-colors"
               >

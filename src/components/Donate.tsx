@@ -71,14 +71,22 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
   // Fetch all campaigns
   useEffect(() => {
     const fetchCampaigns = async () => {
-      setLoading(true);
+      // Only show loading on initial fetch, not on background refreshes
+      if (allCampaigns.length === 0) {
+        setLoading(true);
+      }
       const data = await getAllCampaigns();
       setAllCampaigns(data);
       
-      // Only set default campaign if no campaign is selected
-      if (data.length > 0 && !campaign && !selectedCampaign) {
-        setCampaign(data[0]);
+      // Update the selected campaign if it exists in the new data
+      if (selectedCampaign) {
+        const updatedSelected = data.find(c => c.id === selectedCampaign.id);
+        if (updatedSelected) {
+          setSelectedCampaign(updatedSelected);
+          setCampaign(updatedSelected);
+        }
       }
+      
       setLoading(false);
     };
 
@@ -87,7 +95,7 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
     // Refresh campaigns every 10 seconds
     const interval = setInterval(fetchCampaigns, 10000);
     return () => clearInterval(interval);
-  }, [refreshTrigger]); // Removed campaign and selectedCampaign from dependencies
+  }, [refreshTrigger]); // Keep minimal dependencies
 
   const handleSelectCampaign = (camp: Campaign) => {
     setSelectedCampaign(camp);
@@ -138,18 +146,34 @@ export const Donate = ({ walletAddress, onBack }: DonateProps) => {
     setTxStatus(result.status);
 
     if (result.status === "success") {
-      // Refresh the SAME campaign data (not switch to another)
+      // Trigger backend sync to capture the donation
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/events/sync`, {
+          method: "POST",
+        });
+      } catch (err) {
+        console.warn("Failed to trigger sync:", err);
+      }
+
+      // Refresh the SAME campaign data without changing view
       const updatedCampaign = await getCampaign(currentCampaignId);
+      
+      // Update both campaign states to keep the same campaign selected
       setCampaign(updatedCampaign);
       setSelectedCampaign(updatedCampaign);
+      
+      // Update the campaign in the allCampaigns list too
+      setAllCampaigns(prev => 
+        prev.map(c => c.id === currentCampaignId ? (updatedCampaign || c) : c)
+      );
       
       // Refresh balance
       const newBalance = await getWalletBalance(walletAddress);
       setBalance(newBalance);
       setAmount("");
       
-      // Trigger refresh of all campaigns list (but don't change selected campaign)
-      setRefreshTrigger(prev => prev + 1);
+      // Don't trigger full refresh - we already updated the specific campaign
+      // setRefreshTrigger(prev => prev + 1); // REMOVED - causes unnecessary refresh
     }
   };
 

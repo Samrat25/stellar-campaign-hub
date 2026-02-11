@@ -1,17 +1,26 @@
 //! Stellar Crowdfunding Soroban Smart Contract
 //! 
 //! Features:
-//! - Multiple campaigns with lifecycle states (Open, Funded, Closed)
+//! - Multiple campaigns with lifecycle states (Open, Funded, Closed, Expired)
 //! - Strict role separation (creator cannot donate)
 //! - Overfunding prevention
 //! - Per-wallet donation tracking
 //! - Event emission for indexing
+//! - Inter-contract call to RewardToken (SST) on donation
+//! - Deadline expiration logic
 
 #![no_std]
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short,
-    Address, Env, String, Vec, log,
+    Address, Env, String, Vec, log, contractclient,
 };
+
+/// External RewardToken contract client for inter-contract calls
+#[contractclient(name = "RewardTokenClient")]
+pub trait RewardTokenInterface {
+    fn mint(env: Env, to: Address, amount: i128);
+    fn balance(env: Env, account: Address) -> i128;
+}
 
 /// Campaign lifecycle status
 #[contracttype]
@@ -20,6 +29,7 @@ pub enum CampaignStatus {
     Open,      // Accepting donations
     Funded,    // Target reached
     Closed,    // Manually closed
+    Expired,   // Deadline passed without reaching goal
 }
 
 /// Campaign data structure
@@ -52,6 +62,7 @@ pub enum DataKey {
     CampaignList,
     Donations(u64),
     WalletDonations(Address),
+    RewardTokenAddr,
 }
 
 #[contract]
@@ -59,6 +70,42 @@ pub struct CrowdfundingContract;
 
 #[contractimpl]
 impl CrowdfundingContract {
+    /// Set the reward token contract address (one-time setup)
+    pub fn set_reward_token(env: Env, admin: Address, token_addr: Address) {
+        admin.require_auth();
+        if env.storage().instance().has(&DataKey::RewardTokenAddr) {
+            panic!("Reward token already set");
+        }
+        env.storage().instance().set(&DataKey::RewardTokenAddr, &token_addr);
+        env.storage().instance().extend_ttl(100_000, 100_000);
+        log!(&env, "Reward token set");
+    }
+
+    /// Get the reward token contract address
+    pub fn get_reward_token(env: Env) -> Option<Address> {
+        env.storage().instance().get(&DataKey::RewardTokenAddr)
+    }
+
+    /// Check and mark expired campaigns
+    pub fn check_expired(env: Env, campaign_id: u64) -> bool {
+        let mut campaign: Campaign = env.storage().instance()
+            .get(&DataKey::Campaign(campaign_id))
+            .expect("Campaign not found");
+
+        if campaign.status == CampaignStatus::Open && env.ledger().timestamp() > campaign.end_time {
+            campaign.status = CampaignStatus::Expired;
+            env.storage().instance().set(&DataKey::Campaign(campaign_id), &campaign);
+            
+            env.events().publish(
+                (symbol_short!("CAMPAIGN"), symbol_short!("expired")),
+                campaign_id,
+            );
+            
+            env.storage().instance().extend_ttl(100_000, 100_000);
+            return true;
+        }
+        false
+    }
     /// Create a new campaign
     pub fn create_campaign(
         env: Env,
@@ -104,6 +151,7 @@ impl CrowdfundingContract {
 
         env.storage().instance().extend_ttl(100_000, 100_000);
 
+        // Emit CampaignCreated event
         env.events().publish(
             (symbol_short!("CAMPAIGN"), symbol_short!("created")),
             (campaign_id, creator, title, target_amount),
@@ -136,9 +184,15 @@ impl CrowdfundingContract {
             panic!("Campaign is not accepting donations");
         }
 
-        // Check end time
+        // Check end time — auto-expire if deadline passed
         if env.ledger().timestamp() > campaign.end_time {
-            panic!("Campaign has ended");
+            campaign.status = CampaignStatus::Expired;
+            env.storage().instance().set(&DataKey::Campaign(campaign_id), &campaign);
+            env.events().publish(
+                (symbol_short!("CAMPAIGN"), symbol_short!("expired")),
+                campaign_id,
+            );
+            panic!("Campaign has expired");
         }
 
         // Prevent overfunding
@@ -156,6 +210,7 @@ impl CrowdfundingContract {
         if campaign.total_donated >= campaign.target_amount {
             campaign.status = CampaignStatus::Funded;
             
+            // Emit CampaignFunded event
             env.events().publish(
                 (symbol_short!("CAMPAIGN"), symbol_short!("funded")),
                 campaign_id,
@@ -186,10 +241,30 @@ impl CrowdfundingContract {
 
         env.storage().instance().extend_ttl(100_000, 100_000);
 
+        // Emit DonationMade event
         env.events().publish(
             (symbol_short!("DONATE"), symbol_short!("received")),
-            (campaign_id, donor, amount, campaign.total_donated),
+            (campaign_id, donor.clone(), amount, campaign.total_donated),
         );
+
+        // Inter-contract call: Mint SST reward tokens to donor
+        // Reward ratio: 1 XLM donated = 10 SST tokens
+        let reward_token_addr: Option<Address> = env.storage().instance()
+            .get(&DataKey::RewardTokenAddr);
+        
+        if let Some(token_addr) = reward_token_addr {
+            let reward_amount = amount * 10; // 10 SST per 1 XLM equivalent
+            
+            // Call the RewardToken contract's mint function
+            let token_client = RewardTokenClient::new(&env, &token_addr);
+            token_client.mint(&donor, &reward_amount);
+            
+            // Emit TokensMinted event
+            env.events().publish(
+                (symbol_short!("TOKEN"), symbol_short!("minted")),
+                (donor, reward_amount, campaign_id),
+            );
+        }
 
         log!(&env, "Donation {} to campaign {}", amount, campaign_id);
     }

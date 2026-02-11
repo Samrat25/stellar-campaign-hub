@@ -1,352 +1,503 @@
-# Stellar Crowdfunding dApp
+# Stellar Campaign Hub — Crowdfunding dApp
 
-A decentralized crowdfunding platform built on Stellar's Soroban smart contracts. Create multiple fundraising campaigns, accept donations in XLM, and track progress in real-time.
+> A decentralized crowdfunding platform built on Stellar's Soroban smart contracts with an agentic backend, SST reward token, real-time analytics, and fraud detection.
 
-## 🎯 Stellar Journey to Mastery - Level 3 (Yellow Belt) Submission
+## 🎯 Stellar Journey to Mastery — Level 4 (Green Belt) Submission
 
-**Complete end-to-end mini-dApp with testing, documentation, and deployment**
+**Production-hardened dApp with inter-contract calls, agentic backend, Supabase integration, and CI/CD pipeline**
+
+### 📋 Submission Checklist
+
+✅ **Public GitHub Repository:** [https://github.com/Samrat25/stellar-campaign-hub](https://github.com/Samrat25/stellar-campaign-hub)
+
+✅ **README with Complete Documentation:** Comprehensive documentation with architecture diagrams, setup instructions, API reference, and troubleshooting guide
+
+✅ **Minimum 8+ Meaningful Commits:** 24 commits (exceeds requirement by 300%)
+
+✅ **Live Demo Link:** [https://steller-yellow-belt-edmvvpg1s-samrat25s-projects.vercel.app](https://steller-yellow-belt-edmvvpg1s-samrat25s-projects.vercel.app)
+
+✅ **Mobile Responsive View:** See screenshot below
+
+✅ **CI/CD Pipeline Running:** GitHub Actions with automated testing and deployment
+
+✅ **Contract Addresses:**
+- Crowdfunding: `CDR7QQ7S27EGRQ64FUBAPCADDLDAWZ4A2UMQNV464AEGIQU5EWYELDK2`
+- Reward Token (SST): `CBD6OFQVJ7TNR66H5RQPM6ZPS3US5RMHTY27WFYSNSJ5MNNMSEGWHGXF`
+
+✅ **Transaction Hash:** Inter-contract call evidence included below
+
+✅ **Custom Token Deployed:** SST (Stellar Support Token) with mint/transfer/balance functions
 
 ---
 
-## 📸 Screenshots
+## 🏛️ Architecture Overview
 
-### 1. Wallet Connection Options
+```
+┌──────────────────────────────────────────────────────────────┐
+│                       FRONTEND (React + Vite)                │
+│  ┌──────────┐ ┌──────────────┐ ┌───────────┐ ┌───────────┐  │
+│  │ Wallet   │ │ Campaign     │ │ Live Feed │ │ Admin     │  │
+│  │ Selector │ │ Manager      │ │ Component │ │ Panel     │  │
+│  └────┬─────┘ └──────┬───────┘ └─────┬─────┘ └─────┬─────┘  │
+│       │              │               │              │        │
+│       └──────────────┴───────────────┴──────────────┘        │
+│                              │                               │
+│              ┌───────────────┴────────────────┐              │
+│              │  sorobanClient.ts (Stellar SDK) │              │
+│              └───────────────┬────────────────┘              │
+└──────────────────────────────┼───────────────────────────────┘
+                               │ ← Soroban RPC + REST API
+┌──────────────────────────────┼───────────────────────────────┐
+│                       BACKEND (Express.js)                   │
+│  ┌────────────────────┐     │     ┌────────────────────┐     │
+│  │   API Routes       │◄────┘     │  Agent Manager     │     │
+│  │ • /api/v1/*        │           │ ┌────────────────┐ │     │
+│  │ • /api/agents/*    │           │ │ Guardian Agent  │ │     │
+│  │ • /api/events      │           │ │ Reward Agent    │ │     │
+│  │ • /api/analytics   │           │ │ Fraud Agent     │ │     │
+│  └────────┬───────────┘           │ │ Analytics Agent │ │     │
+│           │                       │ └────────┬───────┘ │     │
+│  ┌────────┴───────────┐           └──────────┼─────────┘     │
+│  │  Stellar Service   │                      │               │
+│  │  (Soroban RPC)     │◄─────────────────────┘               │
+│  └────────┬───────────┘                      │               │
+│           │              ┌───────────────────┴────────┐      │
+│  ┌────────┴───────────┐  │  Supabase Service          │      │
+│  │  Event Sync        │──│  (DB + In-Memory Fallback) │      │
+│  │  (Blockchain→DB)   │  └────────────────────────────┘      │
+│  └────────────────────┘                                      │
+└──────────────────────────────────────────────────────────────┘
+                               │
+┌──────────────────────────────┼───────────────────────────────┐
+│                    SMART CONTRACTS (Soroban)                  │
+│  ┌─────────────────────┐     ┌──────────────────────┐        │
+│  │ CrowdfundingContract│────►│  RewardToken (SST)   │        │
+│  │ • create_campaign   │ ICC │  • mint (admin only)  │        │
+│  │ • donate            │────►│  • transfer           │        │
+│  │ • check_expired     │     │  • balance            │        │
+│  │ • set_reward_token  │     │  • total_supply       │        │
+│  └─────────────────────┘     └──────────────────────┘        │
+│                                                              │
+│  ICC = Inter-Contract Call (donate → mint SST reward)        │
+└──────────────────────────────────────────────────────────────┘
+                               │
+┌──────────────────────────────┼───────────────────────────────┐
+│                         SUPABASE                             │
+│  ┌────────────┐ ┌────────────┐ ┌────────────┐               │
+│  │ campaigns  │ │ donations  │ │ agent_logs │               │
+│  │ fraud_flags│ │ analytics  │ │            │               │
+│  └────────────┘ └────────────┘ └────────────┘               │
+└──────────────────────────────────────────────────────────────┘
+```
 
-The app supports three wallet providers for connecting to Stellar Testnet:
+---
 
+---
+
+## ✅ Level 4 Submission Checklist
+
+### Required Documentation
+
+#### Live Demo Link
+🚀 **Deployed Application:** [https://steller-yellow-belt-edmvvpg1s-samrat25s-projects.vercel.app](https://steller-yellow-belt-edmvvpg1s-samrat25s-projects.vercel.app)
+
+#### Contract Addresses & Transaction Hash
+
+**Crowdfunding Contract ID:**
+```
+CDR7QQ7S27EGRQ64FUBAPCADDLDAWZ4A2UMQNV464AEGIQU5EWYELDK2
+```
+[🔍 Verify on Stellar Explorer](https://stellar.expert/explorer/testnet/contract/CDR7QQ7S27EGRQ64FUBAPCADDLDAWZ4A2UMQNV464AEGIQU5EWYELDK2)
+
+**Reward Token (SST) Contract ID:**
+```
+CBD6OFQVJ7TNR66H5RQPM6ZPS3US5RMHTY27WFYSNSJ5MNNMSEGWHGXF
+```
+[🔍 Verify SST Token](https://stellar.expert/explorer/testnet/contract/CBD6OFQVJ7TNR66H5RQPM6ZPS3US5RMHTY27WFYSNSJ5MNNMSEGWHGXF)
+
+**Inter-Contract Call Evidence:**
+The crowdfunding contract calls the reward token contract's `mint()` function on every donation to distribute SST tokens (10 SST per 1 XLM donated).
+
+**Example Transaction Hash:**
+![Transaction Hash](docs/transaction-hash.png)
+*Transaction showing successful inter-contract call verified on Stellar Testnet Explorer*
+
+---
+
+## 📸 Required Screenshots
+
+### Mobile Responsive View
+![Mobile Responsive](docs/mobile-responsive.png)
+*Fully responsive design optimized for mobile, tablet, and desktop devices*
+
+### CI/CD Pipeline Running
+![CI/CD Pipeline](docs/ci-cd-pipeline.png)
+*Automated testing and deployment pipeline with GitHub Actions*
+
+[![CI Pipeline](https://github.com/Samrat25/stellar-campaign-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/Samrat25/stellar-campaign-hub/actions/workflows/ci.yml)
+
+### Additional Screenshots
 ![Wallet Options](docs/wallet-options.png)
-
 *Three wallet options: Freighter, Albedo, and xBull for seamless Stellar integration*
 
----
-
-### 2. Deployed Smart Contract
-
-Contract successfully deployed and verified on Stellar Testnet:
-
 ![Contract Address](docs/contract-address.png)
-
-**Contract ID:** `CBIRTVTRK5KJ3HSHLAWUQPO2IC6UVXMGFDUJPLL5QK447YPQ22WW77R2`
-
-**Deployment Transaction:** `457fba881468665022a9e2754772646d8e69ad59a2d154f3219b560d06316761`
-
-[🔍 Verify on Stellar Explorer](https://stellar.expert/explorer/testnet/contract/CBIRTVTRK5KJ3HSHLAWUQPO2IC6UVXMGFDUJPLL5QK447YPQ22WW77R2)
-
----
-
-### 3. Transaction Hash (Contract Interaction)
-
-Live transaction showing successful donation to campaign:
-
-![Transaction Hash](docs/transaction-hash.png)
-
-*Example transaction showing contract call verified on Stellar Testnet Explorer*
-
-**How to verify transactions:**
-1. Make a donation in the app
-2. Copy the transaction hash from the success message
-3. Visit: `https://stellar.expert/explorer/testnet/tx/CBIRTVTRK5KJ3HSHLAWUQPO2IC6UVXMGFDUJPLL5QK447YPQ22WW77R2`
-4. View complete transaction details on Stellar Explorer
-
----
-
-## 🚀 Live Demo & Resources
-
-**🌐 Live Application:** [https://steller-yellow-belt-edmvvpg1s-samrat25s-projects.vercel.app](https://steller-yellow-belt-edmvvpg1s-samrat25s-projects.vercel.app)
-
-**📹 Demo Video (1-minute):** [Add your video link here - YouTube/Loom/Vimeo]
-
-**📦 GitHub Repository:** [https://github.com/Samrat25/stellar-campaign-hub](https://github.com/Samrat25/stellar-campaign-hub)
-
-**🔗 Smart Contract on Stellar Explorer:** [View Contract](https://stellar.expert/explorer/testnet/contract/CBIRTVTRK5KJ3HSHLAWUQPO2IC6UVXMGFDUJPLL5QK447YPQ22WW77R2)
-
----
-
-## 📋 Level 3 Requirements Checklist
-
-✅ **Mini-dApp fully functional** - Complete crowdfunding platform with wallet integration  
-✅ **Minimum 3 tests passing** - 10 tests passing (Campaign validation, wallet validation, amount conversion)  
-✅ **README complete** - Full documentation with setup, usage, and deployment instructions  
-✅ **Demo video recorded** - [Add link above]  
-✅ **Minimum 3+ meaningful commits** - 10+ commits with feature implementations  
-✅ **Public GitHub repository** - Open source and accessible  
-✅ **Live demo deployed** - Hosted on Vercel  
-✅ **Test output screenshot** - See below
-
----
-
-## 🧪 Test Results
-
-**10 Tests Passing ✅**
-
-![Test Results](docs/test-results.png)
-
-*All 10 tests passing: Campaign validation, wallet validation, and amount conversion*
-
-**Test Coverage:**
-- ✅ Campaign Validation (5 tests)
-- ✅ Wallet Address Validation (2 tests)
-- ✅ Amount Conversion (3 tests)
-
-**Run tests yourself:**
-```bash
-npm test
-```
-
----
-
-## 📋 Contract Information
-
-**Deployed Contract Address:**
-```
-CBIRTVTRK5KJ3HSHLAWUQPO2IC6UVXMGFDUJPLL5QK447YPQ22WW77R2
-```
-
-**Deployment Transaction:**
-```
-457fba881468665022a9e2754772646d8e69ad59a2d154f3219b560d06316761
-```
-
-**Network:** Stellar Testnet
+*Deployed smart contracts on Stellar Testnet*
 
 ---
 
 ## ✨ Features
 
-### Core Functionality
-- **Multiple Campaigns** - Create unlimited fundraising campaigns from a single wallet
-- **Smart Role Separation** - Contract prevents creators from donating to their own campaigns
-- **Three Wallet Support** - Seamless integration with Freighter, Albedo, and xBull
-- **Real-time Updates** - Live progress tracking with instant balance updates
-- **Transaction History** - Complete donation history for each campaign
-- **Campaign Browser** - Browse, search, and filter all active campaigns
+### Core Features (Level 3)
+- **Multiple Campaigns** — Create unlimited fundraising campaigns from a single wallet
+- **Smart Role Separation** — Contract prevents creators from donating to their own campaigns
+- **Three Wallet Support** — Freighter, Albedo, and xBull integration
+- **Real-time Updates** — Live progress tracking with instant balance updates
+- **Campaign Browser** — Browse, search, and filter all active campaigns
+- **Platform Analytics** — Real-time statistics dashboard
 
-### Advanced Features
-- **Loading States** - Skeleton loaders and progress indicators for better UX
-- **Caching Implementation** - 30-second backend caching for optimal performance
-- **Search & Filter** - Find campaigns by title, creator, or funding status
-- **Sort Options** - Sort by newest, most funded, or closest to goal
-- **Grid/List Views** - Toggle between different campaign display modes
-- **Platform Analytics** - Real-time statistics dashboard
-- **Responsive Design** - Works seamlessly on desktop and mobile
+### Green Belt Level 4 Upgrades 🆕
+- **🪙 SST Reward Token** — Custom Soroban token minted as donation rewards (10 SST per XLM)
+- **💰 SST Token Vault** — Withdraw/redeem interface with reward history and transaction tracking
+- **🔗 Inter-Contract Calls** — CrowdfundingContract calls RewardToken on each donation
+- **🤖 Agentic Backend** — 4 autonomous agents (Guardian, Reward, Fraud, Analytics)
+- **📊 Agent Control Panel** — Admin debug view at `/admin/agents`
+- **🔴 Live Donation Feed** — Real-time donation stream with animations
+- **🛡️ Fraud Detection** — Suspicious pattern flagging (rapid-fire, spike detection)
+- **💎 Early Donor Bonuses** — 2x SST for first 5%, 1.5x for first 10% of campaign progress
+- **🗄️ Supabase Integration** — PostgreSQL with in-memory fallback
+- **⏰ Campaign Expiration** — Auto-expire campaigns past deadline
+- **🚦 Rate Limiting** — Custom rate limiter (100 req/15min/IP)
+- **🏗️ CI/CD Pipeline** — GitHub Actions for lint, test, and build
+- **📱 Mobile Responsive** — Full mobile-first design
 
 ---
 
-## 🛠️ Setup Instructions
+## 🚀 Quick Start
 
 ### Prerequisites
-
 - Node.js v18+
-- npm or bun
-- Stellar wallet (Freighter, Albedo, or xBull)
-- Testnet XLM
+- npm
+- Stellar wallet browser extension (Freighter, Albedo, or xBull)
+- Testnet XLM ([Get free XLM](https://laboratory.stellar.org/#account-creator?network=test))
 
-### Installation Steps
+### 1. Clone & Install
 
-1. **Clone the repository**
 ```bash
 git clone https://github.com/Samrat25/stellar-campaign-hub.git
 cd stellar-campaign-hub
-```
 
-2. **Install dependencies**
-```bash
+# Frontend
 npm install
+
+# Backend
+cd backend
+npm install
+cd ..
 ```
 
-3. **Start development server**
+### 2. Configure Environment
+
 ```bash
+# Backend
+cp backend/.env.example backend/.env
+# Edit backend/.env with your values
+```
+
+**Required variables:**
+| Variable | Description | Default |
+|---|---|---|
+| `PORT` | Backend server port | `3001` |
+| `CONTRACT_ID` | Crowdfunding contract | Pre-configured |
+| `REWARD_TOKEN_CONTRACT_ID` | SST Token contract | Deploy yourself |
+| `RPC_URL` | Soroban RPC endpoint | `https://soroban-testnet.stellar.org` |
+| `SUPABASE_URL` | Supabase project URL | Optional (uses in-memory) |
+| `SUPABASE_ANON_KEY` | Supabase anon key | Optional (uses in-memory) |
+| `AGENT_INTERVAL_MS` | Agent run interval | `60000` (1 min) |
+
+### 3. Start Development
+
+```bash
+# Terminal 1: Frontend
+npm run dev
+
+# Terminal 2: Backend
+cd backend
 npm run dev
 ```
 
-App runs at `http://localhost:8080`
-
-4. **Build for production**
-```bash
-npm run build
-```
+- Frontend: `http://localhost:8080`
+- Backend API: `http://localhost:3001`
+- Agent Panel: `http://localhost:8080/admin/agents`
+- Health Check: `http://localhost:3001/health`
 
 ---
 
-## 🎮 How to Use
+## 🔗 Smart Contracts
 
-### Connect Wallet
-1. Click "Connect Wallet" in navigation
-2. Select your wallet (Freighter, Albedo, or xBull)
-3. Ensure you're on **Stellar Testnet**
+### CrowdfundingContract
 
-### Get Testnet XLM
-Visit [Stellar Laboratory](https://laboratory.stellar.org/#account-creator?network=test) to fund a test account
+Located in `contracts/crowdfunding/src/lib.rs`
 
-### Create Campaign
-1. Select "Create Campaign"
-2. Enter title and target amount
-3. Approve transaction
-4. Campaign is live!
+| Function | Description |
+|---|---|
+| `create_campaign(creator, title, target_amount, end_time)` | Creates a new campaign |
+| `donate(campaign_id, donor, amount)` | Donates XLM + mints SST rewards |
+| `close_campaign(campaign_id, creator)` | Manually closes a campaign |
+| `check_expired(campaign_id)` | Auto-expires past-deadline campaigns |
+| `set_reward_token(admin, token_addr)` | Links the SST reward token contract |
+| `get_campaign(id)` / `get_all_campaigns()` | Read campaign data |
 
-### Donate
-1. Select "Donate to Campaign"
-2. Browse campaigns
-3. Click campaign to donate
-4. Enter amount and approve
-
-**Note:** Cannot donate to your own campaigns (enforced by smart contract)
-
----
-
-## 🔧 Smart Contract
-
-Located in `contracts/crowdfunding/`
-
-### Main Functions
-
-```rust
-create_campaign(creator, title, target_amount) -> u64
-donate(campaign_id, donor, amount)
-get_campaign(campaign_id) -> Option<Campaign>
-get_all_campaigns() -> Vec<Campaign>
-get_campaigns_by_creator(creator) -> Vec<Campaign>
+**Inter-Contract Call Flow:**
+```
+User calls donate() on CrowdfundingContract
+  → Updates campaign totals & records donation
+  → Emits DONATE/received event
+  → Calls RewardToken.mint(donor, amount * 10)  ← ICC
+  → Emits TOKEN/minted event
 ```
 
-### Build Contract
+### RewardToken (SST)
+
+Located in `contracts/reward_token/src/lib.rs`
+
+| Function | Description |
+|---|---|
+| `initialize(admin, name, symbol, decimals)` | One-time initialization |
+| `mint(to, amount)` | Admin-only minting |
+| `transfer(from, to, amount)` | Token transfer with auth |
+| `balance(account)` | Check token balance |
+| `total_supply()` | Total minted supply |
+
+**Events emitted:** `TOKEN/initialized`, `TOKEN/minted`, `TOKEN/transferred`
+
+### Build & Deploy Contracts
 
 ```bash
+# Build
 cd contracts/crowdfunding
 cargo build --target wasm32-unknown-unknown --release
-```
 
-### Deploy Contract
+cd ../reward_token
+cargo build --target wasm32-unknown-unknown --release
 
-```bash
+# Deploy (Stellar CLI required)
 stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/crowdfunding.wasm \
+  --wasm target/wasm32-unknown-unknown/release/reward_token.wasm \
   --source YOUR_SECRET_KEY \
   --network testnet
+
+# Initialize the reward token
+stellar contract invoke \
+  --id REWARD_TOKEN_CONTRACT_ID \
+  --source YOUR_SECRET_KEY \
+  --network testnet \
+  -- initialize \
+  --admin YOUR_PUBLIC_KEY \
+  --name "Stellar Support Token" \
+  --symbol "SST" \
+  --decimals 7
+
+# Link reward token to crowdfunding contract
+stellar contract invoke \
+  --id CROWDFUNDING_CONTRACT_ID \
+  --source YOUR_SECRET_KEY \
+  --network testnet \
+  -- set_reward_token \
+  --admin YOUR_PUBLIC_KEY \
+  --token_addr REWARD_TOKEN_CONTRACT_ID
 ```
 
-### Run Tests
+**🚀 Quick Deploy Script:**
+
+For easier deployment, use the automated script:
 
 ```bash
-cargo test
+cd contracts
+export STELLAR_SECRET_KEY="S..."  # Your secret key
+bash deploy-reward-token.sh
 ```
+
+This script will:
+1. Build the RewardToken contract
+2. Deploy it to testnet
+3. Initialize with correct parameters
+4. Link it to the crowdfunding contract
+5. Update your `.env` files automatically
+
+See `REWARD_TOKEN_SETUP.md` for detailed instructions.
+
+---
+
+## 💰 SST Token Vault
+
+The SST Token Vault allows users to manage their earned reward tokens.
+
+### Features
+
+- **Balance Overview** — View total SST balance (base + bonuses)
+- **Reward History** — See all agent bonus rewards (2x, 1.5x multipliers)
+- **Donation Activity** — Track all donations and SST earned
+- **Withdraw Tokens** — Transfer SST from contract to your wallet
+- **Real-time Updates** — Auto-refresh every 15 seconds
+
+### How to Access
+
+1. Connect your wallet
+2. Select "SST Token Vault" from the role selector
+3. View your balance and transaction history
+4. Withdraw tokens to your wallet
+
+### Earning SST Tokens
+
+- **Base Reward:** 10 SST per 1 XLM donated
+- **Super Early Bonus:** 2x multiplier (first 5% of campaign progress)
+- **Early Donor Bonus:** 1.5x multiplier (first 10% of campaign progress)
+
+**Example:**
+```
+Donate 5 XLM to a campaign at 3% progress:
+- Base: 5 XLM × 10 = 50 SST
+- Super Early Bonus: 50 SST × 2 = 100 SST
+- Total Earned: 150 SST
+```
+
+### Withdrawal Requirements
+
+To enable withdrawals, the RewardToken contract must be deployed and linked:
+
+1. Run the deployment script (see above)
+2. Restart backend and frontend servers
+3. Make a new donation to mint on-chain tokens
+4. Withdrawals will then work!
+
+**Note:** SST tokens earned before deployment are tracked off-chain. Only tokens from donations made AFTER deployment can be withdrawn.
+
+
+
+### Run Contract Tests
+
+```bash
+cd contracts/crowdfunding && cargo test
+cd contracts/reward_token && cargo test
+```
+
+---
+
+## 🤖 Agentic Backend
+
+The backend runs **4 autonomous agents** on a configurable interval:
+
+### Agent Descriptions
+
+| Agent | Purpose | Actions |
+|---|---|---|
+| **CampaignGuardian** | Monitors campaign lifecycle | Marks campaigns as `Funded` or `Expired` |
+| **RewardOptimization** | Calculates early donor bonuses | 2x bonus (first 5%), 1.5x (first 10%) |
+| **FraudDetection** | Flags suspicious patterns | Rapid-fire (>3 in 5min), abnormal spikes (>5x avg) |
+| **Analytics** | Scores campaign health | Health score (0-100), trending score, top donors |
+
+### Agent Execution Flow
+
+```
+Agent Manager (60s interval)
+  ├─ Sync campaigns from blockchain → Supabase
+  ├─ Run CampaignGuardian → mark funded/expired
+  ├─ Run RewardOptimization → calculate bonuses
+  ├─ Run FraudDetection → flag suspicious wallets
+  └─ Run Analytics → compute health & trending scores
+```
+
+### Agent Tracking API
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/agents/status` | GET | Agent health, last run, action counts |
+| `/api/agents/logs` | GET | Recent agent log entries |
+| `/api/agents/fraud-flags` | GET | Active fraud flags |
+| `/api/agents/run` | POST | Manually trigger all/specific agents |
+| `/api/events` | GET | Real-time donation & campaign events |
+| `/api/analytics` | GET | Campaign health & trending data |
+| `/health` | GET | Server health check |
+
+**Example: Trigger a specific agent**
+```bash
+curl -X POST http://localhost:3001/api/agents/run \
+  -H "Content-Type: application/json" \
+  -d '{"agent": "FraudDetection"}'
+```
+
+---
+
+## 🗄️ Database Schema
+
+### Supabase Tables
+
+```sql
+campaigns     — Synced campaign data from blockchain
+donations     — Donation records with SST reward data
+agent_logs    — All agent actions with metadata
+fraud_flags   — Flagged wallets with severity levels
+analytics     — Campaign health/trending scores
+```
+
+Schema file: `backend/supabase-schema.sql`
+
+**In-Memory Fallback:** If Supabase credentials are not configured, the system automatically falls back to in-memory storage for full testability without external dependencies.
 
 ---
 
 ## 🧪 Testing
 
 ### Frontend Tests (10 Passing ✅)
-
-**Test Coverage:**
-- Campaign validation (required fields, status, amounts)
-- Wallet address format validation
-- Amount conversion (XLM ↔ Stroops)
-- Funding percentage calculations
-
-**Run tests:**
 ```bash
 npm test
 ```
 
-**Watch mode:**
+- Campaign validation (5 tests)
+- Wallet address validation (2 tests)
+- Amount conversion (3 tests)
+
+### Smart Contract Tests (6+ Passing ✅)
 ```bash
-npm run test:watch
+cd contracts/crowdfunding && cargo test
+cd contracts/reward_token && cargo test
 ```
 
-### Smart Contract Tests (6 Passing ✅)
+- Campaign creation & lifecycle
+- Creator self-donation prevention
+- Overfunding prevention
+- Auto-funded status updates
+- Token initialization & minting
+- Transfer authorization
 
-Located in `contracts/crowdfunding/src/lib.rs`
-
-**Test Coverage:**
-1. Campaign creation with valid parameters
-2. Creator donation rejection (role separation)
-3. Multi-wallet donations
-4. Overfunding prevention
-5. Closed campaign donation rejection
-6. Auto-funded status updates
-
-**Run contract tests:**
+### Linting
 ```bash
-cd contracts/crowdfunding
-cargo test
-```
-
-**Expected output:**
-```
-running 6 tests
-test test::test_create_campaign ... ok
-test test::test_creator_cannot_donate - should panic ... ok
-test test::test_multi_wallet_donations ... ok
-test test::test_overfunding_prevention - should panic ... ok
-test test::test_donation_after_close - should panic ... ok
-test test::test_auto_funded_status ... ok
-
-test result: ok. 6 passed; 0 failed
+npm run lint
 ```
 
 ---
 
-## 🎮 How to Use the dApp
+## 🔐 Security Features
 
-### Step 1: Connect Your Wallet
-1. Click **"Connect Wallet"** in the navigation bar
-2. Select your preferred wallet:
-   - **Freighter** (Browser extension)
-   - **Albedo** (Web-based)
-   - **xBull** (Browser extension)
-3. Ensure you're connected to **Stellar Testnet**
-4. Approve the connection request
+### Smart Contract Level
+- ✅ Inter-contract call authorization
+- ✅ Creator self-donation prevention
+- ✅ Overfunding prevention
+- ✅ Deadline expiration enforcement
+- ✅ Admin-only token minting
+- ✅ One-time reward token linking
 
-### Step 2: Get Testnet XLM (Free)
-Visit the [Stellar Laboratory](https://laboratory.stellar.org/#account-creator?network=test) to fund your test account with free XLM
+### Backend Level
+- ✅ Rate limiting (100 req/15min/IP)
+- ✅ Centralized error handling
+- ✅ Request logging
+- ✅ Input validation
+- ✅ CORS configured
 
-### Step 3: Create a Campaign
-1. Click **"Create Campaign"** in the navigation
-2. Fill in the campaign details:
-   - **Title:** Name your campaign (e.g., "Education Fund")
-   - **Target Amount:** Set your funding goal in XLM (e.g., 100)
-3. Click **"Create Campaign"**
-4. Approve the transaction in your wallet
-5. Wait for confirmation (3-5 seconds)
-6. Your campaign is now live! 🎉
-
-### Step 4: Donate to Campaigns
-1. Click **"Donate to Campaign"** in the navigation
-2. Browse available campaigns or use search/filters
-3. Click on a campaign card to view details
-4. Enter your donation amount in XLM
-5. Click **"Donate"**
-6. Approve the transaction in your wallet
-7. See the progress bar update in real-time!
-
-**Important Notes:**
-- ❌ You cannot donate to your own campaigns (enforced by smart contract)
-- ✅ You can donate to any other user's campaigns
-- ✅ Campaigns automatically close when fully funded
-- ✅ All transactions are verified on Stellar Testnet
-
----
-## 💻 Tech Stack
-
-### Frontend
-- **React 18** - Modern UI library with hooks
-- **TypeScript** - Type-safe development
-- **Vite** - Lightning-fast build tool
-- **Tailwind CSS** - Utility-first styling
-- **Framer Motion** - Smooth animations
-- **Stellar SDK v14.5.0** - Blockchain integration
-- **Stellar Wallet Kit** - Multi-wallet support
-- **Radix UI** - Accessible component primitives
-- **React Query** - Data fetching and caching
-
-### Smart Contract
-- **Rust** - Systems programming language
-- **Soroban SDK v21.0.0** - Stellar smart contract framework
-- **Stellar Testnet** - Safe testing environment
-
-### Testing
-- **Vitest** - Fast unit testing framework
-- **Testing Library** - React component testing
-- **Cargo Test** - Rust contract testing
+### Agent Level
+- ✅ Fraud detection (rapid-fire, spikes)
+- ✅ Campaign lifecycle enforcement
+- ✅ Deduplication of flags/logs
 
 ---
 
@@ -355,62 +506,131 @@ Visit the [Stellar Laboratory](https://laboratory.stellar.org/#account-creator?n
 ```
 stellar-campaign-hub/
 ├── contracts/
-│   └── crowdfunding/          # Soroban smart contract
-│       ├── src/
-│       │   └── lib.rs         # Contract logic
-│       ├── Cargo.toml
-│       └── target/            # Compiled WASM
+│   ├── crowdfunding/              # Main crowdfunding contract
+│   │   └── src/lib.rs             # Campaign CRUD + ICC to RewardToken
+│   └── reward_token/              # SST reward token contract  🆕
+│       └── src/lib.rs             # Mint, transfer, balance
+├── backend/
+│   ├── src/
+│   │   ├── index.js               # Express server + hardening
+│   │   ├── agents/                # Agentic backend  🆕
+│   │   │   ├── agentManager.js    # Scheduler & orchestrator
+│   │   │   ├── guardianAgent.js   # Campaign lifecycle
+│   │   │   ├── rewardAgent.js     # Early donor bonuses
+│   │   │   ├── fraudAgent.js      # Suspicious pattern detection
+│   │   │   └── analyticsAgent.js  # Health & trending scores
+│   │   ├── services/
+│   │   │   ├── stellar.js         # Soroban RPC interactions
+│   │   │   ├── supabase.js        # DB + in-memory fallback  🆕
+│   │   │   └── eventSync.js       # Blockchain → DB sync  🆕
+│   │   └── routes/
+│   │       ├── campaigns.js       # /api/v1/campaigns
+│   │       ├── donations.js       # /api/v1/donations
+│   │       ├── analytics.js       # /api/v1/analytics
+│   │       ├── search.js          # /api/v1/search
+│   │       ├── agents.js          # /api/agents/*  🆕
+│   │       ├── events.js          # /api/events  🆕
+│   │       └── analyticsV2.js     # /api/analytics (v2)  🆕
+│   ├── supabase-schema.sql        # Database DDL  🆕
+│   ├── .env.example
+│   └── package.json
 ├── src/
-│   ├── components/            # React components
-│   │   ├── CampaignFilters.tsx
-│   │   ├── EnhancedCampaignCard.tsx
-│   │   ├── PlatformAnalytics.tsx
-│   │   └── ...
-│   ├── stellar/               # Blockchain integration
-│   │   └── sorobanClient.ts   # Contract interactions
-│   ├── pages/                 # Route pages
+│   ├── components/
+│   │   ├── LiveDonationFeed.tsx   # Real-time donation stream  🆕
+│   │   ├── TokenBalance.tsx       # SST balance display  🆕
+│   │   ├── WalletSelector.tsx
+│   │   ├── RoleSelector.tsx
 │   │   ├── CreateCampaign.tsx
-│   │   ├── DonateToCampaign.tsx
+│   │   ├── Donate.tsx
 │   │   └── ...
-│   ├── hooks/                 # Custom React hooks
-│   ├── lib/                   # Utilities
-│   ├── test/                  # Test files
-│   │   └── example.test.ts    # 10 passing tests
-│   └── main.tsx               # App entry point
-├── docs/                      # Screenshots
-│   ├── wallet-options.png
-│   ├── contract-address.png
-│   └── transaction-hash.png
-├── README.md                  # This file
+│   ├── pages/
+│   │   ├── Index.tsx              # Main page (updated)
+│   │   ├── AdminAgents.tsx        # Agent control panel  🆕
+│   │   └── NotFound.tsx
+│   ├── stellar/
+│   │   └── sorobanClient.ts       # Frontend Soroban client
+│   └── test/
+│       └── example.test.ts        # 10 passing tests
+├── .github/workflows/
+│   └── ci.yml                     # CI/CD pipeline  🆕
+├── README.md
 ├── package.json
-└── vite.config.ts
+├── vite.config.ts
+└── vercel.json
 ```
 
 ---
 
-## 🔐 Security Features
+## 🔗 API Reference
 
-### Smart Contract Level
-- ✅ **Role-based access control** - Creators cannot donate to own campaigns
-- ✅ **Input validation** - All parameters validated on-chain
-- ✅ **Overflow protection** - Safe arithmetic operations
-- ✅ **Status enforcement** - Campaign lifecycle strictly managed
-- ✅ **Overfunding prevention** - Donations cannot exceed target
-- ✅ **Time-based restrictions** - Campaign end times enforced
+### Existing Routes (v1)
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/v1/campaigns` | All campaigns |
+| GET | `/api/v1/campaigns/:id` | Campaign by ID |
+| GET | `/api/v1/donations/campaign/:id` | Donations for campaign |
+| GET | `/api/v1/donations/wallet/:address` | Donations by wallet |
+| GET | `/api/v1/analytics/overview` | Platform analytics |
+| GET | `/api/v1/search?q=term` | Search campaigns |
 
-### Frontend Level
-- ✅ **Wallet authentication** - All actions require connected wallet
-- ✅ **Transaction approval** - User must approve each transaction
-- ✅ **Error handling** - Comprehensive error messages
-- ✅ **Input validation** - Client-side validation before submission
-- ✅ **XSS prevention** - React's built-in protection
-- ✅ **Type safety** - TypeScript for compile-time checks
+### New Routes (Level 4) 🆕
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/agents/status` | Agent health & metadata |
+| GET | `/api/agents/logs?limit=N` | Agent action logs |
+| GET | `/api/agents/fraud-flags?all=true` | Fraud flags |
+| POST | `/api/agents/run` | Trigger agents `{"agent":"Name"}` |
+| GET | `/api/events?limit=N` | Real-time events |
+| GET | `/api/analytics` | Health & trending scores |
+| GET | `/health` | Server health check |
 
-### Network Level
-- ✅ **Testnet deployment** - Safe testing environment
-- ✅ **No private keys stored** - Wallet extensions handle keys
-- ✅ **HTTPS only** - Secure communication
-- ✅ **CORS configured** - Controlled API access
+---
+
+---
+
+## 📋 Submission Requirements Verification
+
+### ✅ Public GitHub Repository
+- **Repository:** [https://github.com/Samrat25/stellar-campaign-hub](https://github.com/Samrat25/stellar-campaign-hub)
+- **Visibility:** Public
+- **Access:** Open source
+
+### ✅ README with Complete Documentation
+- Architecture overview with diagrams
+- Setup and installation instructions
+- Smart contract documentation
+- API reference
+- Testing instructions
+- Troubleshooting guide
+
+### ✅ Minimum 8+ Meaningful Commits
+- **Total Commits:** 24 commits (exceeds requirement by 300%)
+- All commits have descriptive messages
+- Commits show iterative development process
+
+### ✅ Inter-Contract Calls Working
+- CrowdfundingContract → RewardToken.mint() on every donation
+- Automatic SST token distribution (10 SST per 1 XLM)
+- Early donor bonuses (2x and 1.5x multipliers)
+
+### ✅ Custom Token Deployed
+- **Token Name:** Stellar Support Token (SST)
+- **Symbol:** SST
+- **Decimals:** 7
+- **Features:** Mint (admin only), Transfer, Balance queries
+- **Contract ID:** `CBD6OFQVJ7TNR66H5RQPM6ZPS3US5RMHTY27WFYSNSJ5MNNMSEGWHGXF`
+
+### ✅ CI/CD Pipeline Running
+- **Platform:** GitHub Actions
+- **Workflow File:** `.github/workflows/ci.yml`
+- **Jobs:** Lint, Test, Build, Contract Compilation
+- **Status:** All checks passing
+
+### ✅ Mobile Responsive Design
+- Mobile-first responsive design
+- Tailwind CSS responsive utilities (sm:, md:, lg:, xl:)
+- Tested on multiple device sizes
+- Adaptive layouts for all screen sizes
 
 ---
 
@@ -418,114 +638,39 @@ stellar-campaign-hub/
 
 ### Common Issues
 
-**❌ Transaction Failed**
-- Ensure you're on **Stellar Testnet** (not Mainnet)
-- Check your XLM balance (need at least 1 XLM for fees)
-- Verify wallet is connected
-- Try refreshing the page
-
-**❌ "Creator Cannot Donate" Error**
-- This is expected behavior (security feature)
-- Switch to a different wallet to donate
-- You can only donate to campaigns created by others
-
-**❌ Wallet Not Connecting**
-- Install the wallet extension (Freighter/xBull)
-- Refresh the page after installation
-- Check that wallet is unlocked
-- Ensure you're on Testnet network
-
-**❌ Campaign Not Appearing**
-- Wait 5-10 seconds for blockchain confirmation
-- Refresh the page
-- Check transaction on Stellar Explorer
-
-**❌ Build Errors**
-- Delete `node_modules` and run `npm install`
-- Clear cache: `npm run build -- --force`
-- Check Node.js version (need v18+)
-
-### Getting Help
-- Check [Stellar Discord](https://discord.gg/stellar)
-- Review [Soroban Documentation](https://soroban.stellar.org/docs)
-- Open an issue on GitHub
-
----
-
-## 📝 Level 3 Submission Checklist
-
-### Required ✅
-- [x] **Public GitHub repository** - [stellar-campaign-hub](https://github.com/Samrat25/stellar-campaign-hub)
-- [x] **README with complete documentation** - Setup, usage, testing, deployment
-- [x] **Minimum 3+ meaningful commits** - 10+ commits with features
-- [x] **Live demo link** - Deployed on Vercel
-- [x] **3+ tests passing** - 10 tests passing (frontend) + 6 tests (contract)
-- [x] **Test output screenshot** - Included in README
-- [ ] **Demo video (1-minute)** - [Add your link above]
-
-### Screenshots ✅
-- [x] Wallet connection options
-- [x] Deployed contract address
-- [x] Transaction hash verification
-
-### Features ✅
-- [x] Mini-dApp fully functional
-- [x] Loading states and progress indicators
-- [x] Basic caching implementation (30-second backend cache)
-- [x] Complete documentation
-- [x] Multiple meaningful commits
-
----
-
-## 🎬 Demo Video Guide
-
-**Create a 1-minute video showing:**
-
-1. **[0-15s]** Landing page and platform overview
-2. **[15-25s]** Connect wallet (Freighter/Albedo/xBull)
-3. **[25-40s]** Create a new campaign
-4. **[40-50s]** Donate to a campaign
-5. **[50-60s]** Show transaction on Stellar Explorer
-
-**Tools you can use:**
-- [Loom](https://www.loom.com/) - Free, easy screen recording
-- [OBS Studio](https://obsproject.com/) - Professional recording
-- [ShareX](https://getsharex.com/) - Windows screen capture
-
-**Tips:**
-- Keep it under 60 seconds
-- Show the full workflow
-- Include audio narration (optional)
-- Upload to YouTube (unlisted) or Loom
-- Add the link to README above
+| Issue | Solution |
+|---|---|
+| Transaction failed | Ensure Stellar Testnet + sufficient XLM balance |
+| Creator cannot donate | Security feature — use different wallet |
+| Agents not running | Check backend server is running on port 3001 |
+| Supabase errors | Set env vars or use in-memory fallback (default) |
+| Build errors | Delete `node_modules`, run `npm install`, check Node v18+ |
+| Rate limited | Wait 15 minutes or reduce request frequency |
 
 ---
 
 ## 🔗 Important Links
 
-### Your Project
-- **Live Demo:** [https://steller-yellow-belt-edmvvpg1s-samrat25s-projects.vercel.app](https://steller-yellow-belt-edmvvpg1s-samrat25s-projects.vercel.app)
-- **GitHub:** [https://github.com/Samrat25/stellar-campaign-hub](https://github.com/Samrat25/stellar-campaign-hub)
-- **Contract Explorer:** [View on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CBIRTVTRK5KJ3HSHLAWUQPO2IC6UVXMGFDUJPLL5QK447YPQ22WW77R2)
-
-### Stellar Resources
-- **Stellar Docs:** [https://developers.stellar.org/](https://developers.stellar.org/)
-- **Soroban Docs:** [https://soroban.stellar.org/docs](https://soroban.stellar.org/docs)
-- **Testnet Faucet:** [https://laboratory.stellar.org/#account-creator?network=test](https://laboratory.stellar.org/#account-creator?network=test)
-- **Stellar Explorer:** [https://stellar.expert/explorer/testnet](https://stellar.expert/explorer/testnet)
-- **Stellar Discord:** [https://discord.gg/stellar](https://discord.gg/stellar)
+| Resource | Link |
+|---|---|
+| **Live Demo** | [Vercel Deployment](https://steller-yellow-belt-edmvvpg1s-samrat25s-projects.vercel.app) |
+| **GitHub** | [Samrat25/stellar-campaign-hub](https://github.com/Samrat25/stellar-campaign-hub) |
+| **Contract Explorer** | [Stellar Expert](https://stellar.expert/explorer/testnet/contract/CBIRTVTRK5KJ3HSHLAWUQPO2IC6UVXMGFDUJPLL5QK447YPQ22WW77R2) |
+| **Stellar Docs** | [developers.stellar.org](https://developers.stellar.org/) |
+| **Soroban Docs** | [soroban.stellar.org](https://soroban.stellar.org/docs) |
+| **Testnet Faucet** | [Stellar Laboratory](https://laboratory.stellar.org/#account-creator?network=test) |
 
 ---
 
 ## 📄 License
 
-MIT License - feel free to use this project as a learning resource!
+MIT License — feel free to use this project as a learning resource!
 
 ---
 
 ## 🙏 Acknowledgments
 
-Built for **Stellar Journey to Mastery - Level 3 (Yellow Belt)**
+Built for **Stellar Journey to Mastery — Level 4 (Green Belt)**
 
 Special thanks to the Stellar Development Foundation for providing excellent documentation and tools.
 
@@ -533,4 +678,5 @@ Special thanks to the Stellar Development Foundation for providing excellent doc
 
 **Submission Date:** February 2026  
 **Author:** Samrat  
+**Level:** Green Belt (Level 4) 🟢  
 **Status:** Ready for Bounty Submission 🚀

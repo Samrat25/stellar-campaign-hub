@@ -4,9 +4,9 @@
  */
 
 import { motion } from "framer-motion";
-import { PlusCircle, Heart, ArrowRight, Sparkles } from "lucide-react";
+import { PlusCircle, Heart, ArrowRight, Sparkles, Coins } from "lucide-react";
 
-export type UserRole = "creator" | "donor" | null;
+export type UserRole = "creator" | "donor" | "vault" | null;
 
 interface RoleSelectorProps {
   onSelectRole: (role: UserRole) => void;
@@ -28,6 +28,14 @@ const roles = [
     icon: Heart,
     accentIcon: Sparkles,
     gradient: "from-accent to-primary",
+  },
+  {
+    id: "vault" as const,
+    title: "SST Token Vault",
+    description: "View your SST rewards, bonus history, and withdraw tokens",
+    icon: Coins,
+    accentIcon: Sparkles,
+    gradient: "from-purple-500 to-pink-500",
   },
 ];
 
@@ -86,7 +94,7 @@ export const RoleSelector = ({ onSelectRole }: RoleSelectorProps) => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid gap-6 md:grid-cols-2"
+        className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
       >
         {roles.map((role) => (
           <motion.button

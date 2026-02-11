@@ -1,0 +1,41 @@
+📸 QUICK SCREENSHOT GUIDE
+========================
+
+You need to add 2 screenshots to complete your submission:
+
+1. MOBILE RESPONSIVE SCREENSHOT
+   -----------------------------
+   File name: docs/mobile-responsive.png
+   
+   Steps:
+   a) Open Chrome browser
+   b) Go to: https://steller-yellow-belt-edmvvpg1s-samrat25s-projects.vercel.app
+   c) Press F12 (open DevTools)
+   d) Press Ctrl+Shift+M (toggle device toolbar)
+   e) Select "iPhone 12 Pro" from the device dropdown
+   f) Press Ctrl+Shift+P and type "screenshot"
+   g) Click "Capture screenshot"
+   h) Save as: docs/mobile-responsive.png
+
+2. CI/CD PIPELINE SCREENSHOT
+   --------------------------
+   File name: docs/ci-cd-pipeline.png
+   
+   Steps:
+   a) Go to: https://github.com/Samrat25/stellar-campaign-hub/actions
+   b) Click on the most recent workflow run
+   c) You should see green checkmarks ✅ for all jobs
+   d) Take a screenshot (Windows: Win+Shift+S, or use Snipping Tool)
+   e) Save as: docs/ci-cd-pipeline.png
+
+3. ADD TO REPOSITORY
+   ------------------
+   git add docs/mobile-responsive.png docs/ci-cd-pipeline.png
+   git commit -m "Add mobile and CI/CD screenshots for Level 4 submission"
+   git push origin main
+
+4. VERIFY
+   -------
+   Go to your GitHub repository and check that both images display correctly in the README.
+
+DONE! Your submission is complete! 🚀

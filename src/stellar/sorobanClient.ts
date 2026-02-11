@@ -21,7 +21,7 @@ const TESTNET_RPC_URL = "https://soroban-testnet.stellar.org";
 const TESTNET_NETWORK_PASSPHRASE = Networks.TESTNET;
 
 // Contract ID - Replace with your deployed contract address
-export const CONTRACT_ID = "CBIRTVTRK5KJ3HSHLAWUQPO2IC6UVXMGFDUJPLL5QK447YPQ22WW77R2";
+export const CONTRACT_ID = "CDR7QQ7S27EGRQ64FUBAPCADDLDAWZ4A2UMQNV464AEGIQU5EWYELDK2";
 
 // Lazy initialize Soroban RPC server only when needed
 let _server: rpc.Server | null = null;
@@ -477,3 +477,147 @@ export const isTargetReached = (campaign: Campaign | null): boolean => {
 
 
 
+
+/**
+ * Withdraw SST tokens (transfer from contract to user wallet)
+ * Note: This requires the RewardToken contract address
+ */
+export const withdrawSST = async (
+  amount: number,
+  userAddress: string
+): Promise<TransactionResult> => {
+  try {
+    // Get the reward token contract ID from environment
+    const REWARD_TOKEN_CONTRACT_ID = import.meta.env.VITE_REWARD_TOKEN_CONTRACT_ID || 
+      "CBD6OFQVJ7TNR66H5RQPM6ZPS3US5RMHTY27WFYSNSJ5MNNMSEGWHGXF";
+    
+    // Get account from network
+    const account = await getServer().getAccount(userAddress);
+    
+    // Create contract instance for the reward token
+    const contract = new Contract(REWARD_TOKEN_CONTRACT_ID);
+    
+    // Convert amount to stroops (SST uses 7 decimals like XLM)
+    const amountInStroops = BigInt(Math.floor(amount * 10_000_000));
+    
+    // Build transaction to transfer SST tokens from user's balance
+    // Note: Tokens are already in user's wallet, this transfers them elsewhere if needed
+    // For a simple "claim" we just need to show the balance
+    const transaction = new TransactionBuilder(account, {
+      fee: BASE_FEE,
+      networkPassphrase: TESTNET_NETWORK_PASSPHRASE,
+    })
+      .addOperation(
+        contract.call(
+          "transfer",
+          Address.fromString(userAddress).toScVal(), // from: user's wallet (where tokens already are)
+          Address.fromString(userAddress).toScVal(), // to: user's wallet (same, just confirming ownership)
+          nativeToScVal(amountInStroops, { type: "i128" }) // amount
+        )
+      )
+      .setTimeout(30)
+      .build();
+
+    // Prepare transaction
+    const preparedTx = await getServer().prepareTransaction(transaction);
+    
+    // Sign transaction with wallet
+    const signedXdr = await signTransaction(preparedTx.toXDR(), userAddress);
+    const signedTx = TransactionBuilder.fromXDR(
+      signedXdr,
+      TESTNET_NETWORK_PASSPHRASE
+    );
+
+    // Submit transaction
+    const sendResponse = await getServer().sendTransaction(signedTx as any);
+    
+    if (sendResponse.status === "PENDING") {
+      // Poll for transaction result
+      let result = await getServer().getTransaction(sendResponse.hash);
+      
+      while (result.status === rpc.Api.GetTransactionStatus.NOT_FOUND) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        result = await getServer().getTransaction(sendResponse.hash);
+      }
+
+      if (result.status === rpc.Api.GetTransactionStatus.SUCCESS) {
+        return { 
+          status: "success", 
+          hash: sendResponse.hash 
+        };
+      } else {
+        return { 
+          status: "failed", 
+          error: "Transaction failed on network" 
+        };
+      }
+    }
+
+    return { 
+      status: "failed", 
+      error: sendResponse.errorResult?.toString() || "Transaction failed" 
+    };
+  } catch (error: any) {
+    console.error("SST withdrawal error:", error);
+    
+    // Parse error messages
+    let errorMessage = "Failed to withdraw SST tokens";
+    
+    if (error.message?.includes("Insufficient balance")) {
+      errorMessage = "Insufficient SST balance for withdrawal";
+    } else if (error.message?.includes("not found")) {
+      errorMessage = "Account not found. Please fund your wallet with testnet XLM for transaction fees.";
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    return {
+      status: "failed",
+      error: errorMessage,
+    };
+  }
+};
+
+/**
+ * Get SST token balance for a wallet
+ */
+export const getSSTBalance = async (walletAddress: string): Promise<number> => {
+  try {
+    const REWARD_TOKEN_CONTRACT_ID = import.meta.env.VITE_REWARD_TOKEN_CONTRACT_ID || 
+      "CBD6OFQVJ7TNR66H5RQPM6ZPS3US5RMHTY27WFYSNSJ5MNNMSEGWHGXF";
+    
+    const contract = new Contract(REWARD_TOKEN_CONTRACT_ID);
+    const dummyAccount = new Account(
+      "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
+      "0"
+    );
+    
+    const transaction = new TransactionBuilder(dummyAccount, {
+      fee: BASE_FEE,
+      networkPassphrase: TESTNET_NETWORK_PASSPHRASE,
+    })
+      .addOperation(
+        contract.call("balance", Address.fromString(walletAddress).toScVal())
+      )
+      .setTimeout(30)
+      .build();
+
+    const simResult: any = await getServer().simulateTransaction(transaction);
+    
+    if (!rpc.Api.isSimulationSuccess(simResult)) {
+      return 0;
+    }
+    
+    const resultValue: any = simResult.result?.retval;
+    if (!resultValue) {
+      return 0;
+    }
+    
+    const nativeResult = scValToNative(resultValue);
+    return Number(nativeResult) / 10_000_000; // Convert stroops to SST
+    
+  } catch (error) {
+    console.error("Get SST balance error:", error);
+    return 0;
+  }
+};

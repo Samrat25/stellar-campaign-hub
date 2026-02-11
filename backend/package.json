@@ -1,7 +1,7 @@
 {
   "name": "stellar-crowdfunding-api",
-  "version": "1.0.0",
-  "description": "Backend API for Stellar Crowdfunding dApp",
+  "version": "2.0.0",
+  "description": "Backend API for Stellar Crowdfunding dApp - Green Belt Level 4",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
@@ -12,6 +12,7 @@
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "@stellar/stellar-sdk": "^14.5.0"
+    "@stellar/stellar-sdk": "^14.5.0",
+    "@supabase/supabase-js": "^2.49.1"
   }
 }
