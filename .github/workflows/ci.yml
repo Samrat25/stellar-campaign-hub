@@ -26,7 +26,7 @@ jobs:
           cache: 'npm'
 
       # ─── Frontend ────────────────────────────
-      - name: Create .env file
+      - name: Create frontend .env file
         run: |
           echo "VITE_REWARD_TOKEN_CONTRACT_ID=CBD6OFQVJ7TNR66H5RQPM6ZPS3US5RMHTY27WFYSNSJ5MNNMSEGWHGXF" > .env
           echo "VITE_API_URL=http://localhost:3001" >> .env
@@ -44,6 +44,17 @@ jobs:
         run: npm run build
 
       # ─── Backend ─────────────────────────────
+      - name: Create backend .env file
+        run: |
+          echo "PORT=3001" > backend/.env
+          echo "CONTRACT_ID=CDR7QQ7S27EGRQ64FUBAPCADDLDAWZ4A2UMQNV464AEGIQU5EWYELDK2" >> backend/.env
+          echo "REWARD_TOKEN_CONTRACT_ID=CBD6OFQVJ7TNR66H5RQPM6ZPS3US5RMHTY27WFYSNSJ5MNNMSEGWHGXF" >> backend/.env
+          echo "STELLAR_NETWORK=testnet" >> backend/.env
+          echo "RPC_URL=https://soroban-testnet.stellar.org" >> backend/.env
+          echo "HORIZON_URL=https://horizon-testnet.stellar.org" >> backend/.env
+          echo "AGENT_INTERVAL_MS=60000" >> backend/.env
+          echo "NODE_ENV=development" >> backend/.env
+
       - name: Install backend dependencies
         working-directory: ./backend
         run: npm ci
