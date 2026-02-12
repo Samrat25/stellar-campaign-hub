@@ -78,6 +78,8 @@
 #### Live Demo Link
 🚀 **Deployed Application:** [https://steller-yellow-belt-edmvvpg1s-samrat25s-projects.vercel.app](https://steller-yellow-belt-edmvvpg1s-samrat25s-projects.vercel.app)
 
+🎥 **Demo Video:** [Watch on Google Drive](https://drive.google.com/file/d/1OCvmASXkVDuTPtLcy3PAWHka0l94O9fx/view)
+
 #### Contract Addresses & Transaction Hash
 
 **Crowdfunding Contract ID:**
@@ -122,7 +124,7 @@ The crowdfunding contract calls the reward token contract's `mint()` function on
 *Deployed Crowdfunding smart contracts on Stellar Testnet*
 ![Contract Address](docs/SST-contract-addresss.png)
 *Deployed SST Reward smart contracts on Stellar Testnet*
-![Contract Address](docs/inter-contractcall.png)
+![Contract Address](docs/Inter-contractcall.png)
 *Deployed Inter contract call contracts on Stellar Testnet*
 ---
 
