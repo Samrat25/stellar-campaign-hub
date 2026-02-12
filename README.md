@@ -2,33 +2,10 @@
 
 > A decentralized crowdfunding platform built on Stellar's Soroban smart contracts with an agentic backend, SST reward token, real-time analytics, and fraud detection.
 
-## 🎯 Stellar Journey to Mastery — Level 4 (Green Belt) Submission
+## 🎯 Stellar Journey to Mastery 
 
 **Production-hardened dApp with inter-contract calls, agentic backend, Supabase integration, and CI/CD pipeline**
 
-### 📋 Submission Checklist
-
-✅ **Public GitHub Repository:** [https://github.com/Samrat25/stellar-campaign-hub](https://github.com/Samrat25/stellar-campaign-hub)
-
-✅ **README with Complete Documentation:** Comprehensive documentation with architecture diagrams, setup instructions, API reference, and troubleshooting guide
-
-✅ **Minimum 8+ Meaningful Commits:** 24 commits (exceeds requirement by 300%)
-
-✅ **Live Demo Link:** [https://steller-yellow-belt-edmvvpg1s-samrat25s-projects.vercel.app](https://steller-yellow-belt-edmvvpg1s-samrat25s-projects.vercel.app)
-
-✅ **Mobile Responsive View:** See screenshot below
-
-✅ **CI/CD Pipeline Running:** GitHub Actions with automated testing and deployment
-
-✅ **Contract Addresses:**
-- Crowdfunding: `CDR7QQ7S27EGRQ64FUBAPCADDLDAWZ4A2UMQNV464AEGIQU5EWYELDK2`
-- Reward Token (SST): `CBD6OFQVJ7TNR66H5RQPM6ZPS3US5RMHTY27WFYSNSJ5MNNMSEGWHGXF`
-
-✅ **Transaction Hash:** Inter-contract call evidence included below
-
-✅ **Custom Token Deployed:** SST (Stellar Support Token) with mint/transfer/balance functions
-
----
 
 ## 🏛️ Architecture Overview
 
@@ -94,7 +71,7 @@
 
 ---
 
-## ✅ Level 4 Submission Checklist
+## ✅Submission Checklist
 
 ### Required Documentation
 
@@ -120,8 +97,9 @@ The crowdfunding contract calls the reward token contract's `mint()` function on
 
 **Example Transaction Hash:**
 ![Transaction Hash](docs/transaction-hash.png)
-*Transaction showing successful inter-contract call verified on Stellar Testnet Explorer*
-
+*Transaction showing successful Crowdfunding Contract verified on Stellar Testnet Explorer*
+![SST Transaction-Hash](docs/SST_Transaction_Hash.png)
+*Transaction showing successful Reward SST Contract verified on Stellar Testnet Explorer*
 ---
 
 ## 📸 Required Screenshots
@@ -141,8 +119,11 @@ The crowdfunding contract calls the reward token contract's `mint()` function on
 *Three wallet options: Freighter, Albedo, and xBull for seamless Stellar integration*
 
 ![Contract Address](docs/contract-address.png)
-*Deployed smart contracts on Stellar Testnet*
-
+*Deployed Crowdfunding smart contracts on Stellar Testnet*
+![Contract Address](docs/SST-contract-addresss.png)
+*Deployed SST Reward smart contracts on Stellar Testnet*
+![Contract Address](docs/inter-contractcall.png)
+*Deployed Inter contract call contracts on Stellar Testnet*
 ---
 
 ## ✨ Features
