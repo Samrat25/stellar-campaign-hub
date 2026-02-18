@@ -71,14 +71,14 @@
 
 ---
 
-## ✅Submission Checklist
+## ✅Submission
 
 ### Required Documentation
 
 #### Live Demo Link
 🚀 **Deployed Application:** [https://steller-yellow-belt-edmvvpg1s-samrat25s-projects.vercel.app](https://steller-yellow-belt-edmvvpg1s-samrat25s-projects.vercel.app)
 
-🎥 **Demo Video:** [Watch on Google Drive](https://drive.google.com/file/d/1MSDYnR3Q1TfMt07Gw-dwOIwfK89FsnHk/view)
+🎥 **Demo Video:** [Watch on Google Drive](https://drive.google.com/file/d/1YrkdCCgmgnBjsK8VrzKl3NzRC7cnJlDN/view?usp=sharing)
 
 #### Contract Addresses & Transaction Hash
 
@@ -571,52 +571,6 @@ stellar-campaign-hub/
 
 ---
 
-## 📋 Submission Requirements Verification
-
-### ✅ Public GitHub Repository
-- **Repository:** [https://github.com/Samrat25/stellar-campaign-hub](https://github.com/Samrat25/stellar-campaign-hub)
-- **Visibility:** Public
-- **Access:** Open source
-
-### ✅ README with Complete Documentation
-- Architecture overview with diagrams
-- Setup and installation instructions
-- Smart contract documentation
-- API reference
-- Testing instructions
-- Troubleshooting guide
-
-### ✅ Minimum 8+ Meaningful Commits
-- **Total Commits:** 24 commits (exceeds requirement by 300%)
-- All commits have descriptive messages
-- Commits show iterative development process
-
-### ✅ Inter-Contract Calls Working
-- CrowdfundingContract → RewardToken.mint() on every donation
-- Automatic SST token distribution (10 SST per 1 XLM)
-- Early donor bonuses (2x and 1.5x multipliers)
-
-### ✅ Custom Token Deployed
-- **Token Name:** Stellar Support Token (SST)
-- **Symbol:** SST
-- **Decimals:** 7
-- **Features:** Mint (admin only), Transfer, Balance queries
-- **Contract ID:** `CBD6OFQVJ7TNR66H5RQPM6ZPS3US5RMHTY27WFYSNSJ5MNNMSEGWHGXF`
-
-### ✅ CI/CD Pipeline Running
-- **Platform:** GitHub Actions
-- **Workflow File:** `.github/workflows/ci.yml`
-- **Jobs:** Lint, Test, Build, Contract Compilation
-- **Status:** All checks passing
-
-### ✅ Mobile Responsive Design
-- Mobile-first responsive design
-- Tailwind CSS responsive utilities (sm:, md:, lg:, xl:)
-- Tested on multiple device sizes
-- Adaptive layouts for all screen sizes
-
----
-
 ## 🐛 Troubleshooting
 
 ### Common Issues
@@ -662,4 +616,4 @@ Special thanks to the Stellar Development Foundation for providing excellent doc
 **Submission Date:** February 2026  
 **Author:** Samrat  
 **Level:** Green Belt (Level 4) 🟢  
-**Status:** Ready for Bounty Submission 🚀
+**Status:** Ready 
